@@ -2,6 +2,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+/// ## Entering capability mode
+///
+/// ```ignore
+///  use capsicum::{enter, sandboxed};
+///  use std::fs::File;
+///  use std::io::Read;
+///
+///  let mut ok_file = File::open("/tmp/foo").unwrap();
+///  let mut s = String::new();
+///
+///  enter().expect("enter failed!");
+///  assert!(sandboxed(), "application is not sandboxed!");
+///
+///  match File::create("/tmp/cant_touch_this") {
+///      Ok(_) => panic!("application is not properly sandboxed!"),
+///      Err(e) => println!("properly sandboxed: {:?}", e)
+///  }
+///
+///  match ok_file.read_to_string(&mut s) {
+///      Ok(_) => println!("This is okay since we opened the descriptor before sandboxing"),
+///      Err(_) => panic!("application is not properly sandboxed!")
+///  }
+/// ```
+
 mod right;
 mod cap;
 

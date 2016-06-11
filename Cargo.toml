@@ -3,8 +3,11 @@ name = "capsicum"
 version = "0.1.0"
 authors = ["Daniel Robertson <dan.robertson@anidata.org>"]
 license = "MPL-2.0"
+license-file = "LICENSE"
 repository = "https://github.com/danlrobertson/capsicum-rs"
 description = """
-Simple intuitive Rust bindings for the FreeBSD capsicum library
+Simple intuitive Rust bindings for the FreeBSD capsicum framework
 """
 build = "build.rs"
+readme = "README.md"
+keywords = ["sandbox", "FreeBSD", "capsicum"]

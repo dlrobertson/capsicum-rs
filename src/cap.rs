@@ -5,10 +5,12 @@
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 
+
 use right::{RIGHTS_VERSION, Right};
 use std::fs::File;
 use std::os::unix::io::AsRawFd;
 
+#[derive(Debug)]
 pub struct Rights(cap_rights_t);
 
 impl Rights {
@@ -20,6 +22,25 @@ impl Rights {
                                                raw_rights,
                                                0u64);
             if rights_ptr.is_null() {
+                Err(())
+            } else {
+                let rights = Rights(empty_rights);
+                if rights.is_valid() {
+                    Ok(rights)
+                } else {
+                    Err(())
+                }
+            }
+        }
+    }
+
+    pub fn from_file(file: &File) -> Result<Rights, ()> {
+        unsafe {
+            let mut empty_rights = cap_rights_t { cr_rights: [0; RIGHTS_VERSION + 2] };
+            let res = __cap_rights_get(RIGHTS_VERSION,
+                                       file.as_raw_fd() as isize,
+                                       &mut empty_rights as *mut cap_rights_t);
+            if res < 0 {
                 Err(())
             } else {
                 let rights = Rights(empty_rights);
@@ -98,8 +119,37 @@ impl Rights {
     }
 }
 
+impl PartialEq for Rights {
+    fn eq(&self, other: &Rights) -> bool {
+        self.0.cr_rights == other.0.cr_rights
+    }
+}
+
 pub struct RightsBuilder(u64);
 
+/// ## Limit capability rights to files
+///
+/// ```ignore
+///  use capsicum::{Right, RightsBuilder};
+///  use std::fs::{self, File};
+///
+///  let x = rand::random::<u8>();
+///
+///  let mut file = File::open("/tmp/foo").unwrap();
+///  let mut s = String::new();
+///
+///  let mut builder = RightsBuilder::new(Right::Seek);
+///
+///  if if x < 42 {
+///      builder.add(Right::Read);
+///  }
+///
+///  match ok_file.read_to_string(&mut s) {
+///      Ok(_) if other_value => println!("Since other value is true we allowed reading"),
+///      Err(_) if !other_value => panic!("Since other value is false we did not allow reading"),
+///      _ => panic!("Application is not properly sandboxed!")
+///  }
+/// ```
 impl RightsBuilder {
     pub fn new(right: Right) -> RightsBuilder {
         RightsBuilder(right as u64)
@@ -109,13 +159,13 @@ impl RightsBuilder {
         RightsBuilder(0)
     }
 
-    pub fn add(mut self, right: Right) -> RightsBuilder {
+    pub fn add<'a>(&'a mut self, right: Right) -> &'a mut RightsBuilder {
         self.0 |= right as u64;
         self
     }
 
-    pub fn remove(mut self, right: Right) -> RightsBuilder {
-        self.0 ^= right as u64;
+    pub fn remove<'a>(&'a mut self, right: Right) -> &'a mut RightsBuilder {
+        self.0 = (self.0 & !(right as u64)) | 0x200000000000000;
         self
     }
 
@@ -144,7 +194,18 @@ pub fn sandboxed() -> bool {
     }
 }
 
+pub fn get_mode() -> Result<usize, ()> {
+    let mut mode = 0;
+    unsafe {
+        if cap_getmode(&mut mode as *mut usize) != 0 {
+            return Err(());
+        }
+    }
+    Ok(mode)
+}
+
 #[repr(C)]
+#[derive(Debug)]
 pub struct cap_rights_t {
     cr_rights: [u64; RIGHTS_VERSION + 2],
 }
@@ -152,8 +213,6 @@ pub struct cap_rights_t {
 type cap_rights = cap_rights_t;
 
 extern "C" {
-    fn cap_enter() -> isize;
-    fn cap_sandboxed() -> isize;
     fn cap_rights_is_valid(rights: *const cap_rights_t) -> bool;
     fn cap_rights_merge(dst: *mut cap_rights_t, src: *const cap_rights_t) -> *mut cap_rights_t;
     fn cap_rights_remove(dst: *mut cap_rights_t, src: *const cap_rights_t) -> *mut cap_rights_t;
@@ -173,4 +232,13 @@ extern "C" {
                           sentinel: u64)
                           -> *mut cap_rights_t;
     fn __cap_rights_is_set(rights: *const cap_rights_t, raw_rights: u64, sentinel: u64) -> bool;
+    fn cap_enter() -> isize;
+    fn cap_sandboxed() -> isize;
+    fn cap_getmode(modep: *mut usize) -> isize;
+    fn __cap_rights_get(version: usize, fd: isize, rightsp: *mut cap_rights_t) -> isize;
+// TODO
+// fn cap_ioctls_limit(fd: isize, cmds: u64, ncmds: usize) -> isize;
+// fn cap_ioctls_get(fd: isize, cmds: u64, maxcmds: usize) -> isize;
+// fn cap_fcntls_limit(fd: isize, fcntlrights: u32) -> isize;
+// fn cap_fcntls_get(fd: isize, fcntlrightsp: *mut u32) -> isize;
 }
