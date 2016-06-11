@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 #![allow(unused)]
 pub const RIGHTS_VERSION: usize = 0;
 
@@ -104,12 +108,11 @@ pub enum Right {
     Kqueue = right_or!(Right::KqueueEvent, Right::KqueueChange),
     All1 = cap_right!(1, 0x1FFFFFu64),
     Unused122 = cap_right!(1, 0x200000u64),
-    Unused157 = cap_right!(1, 0x100000000000000u64)
+    Unused157 = cap_right!(1, 0x100000000000000u64),
 }
 
 #[test]
-fn test_cap_right_macro() {
-    assert_eq!(144115188075855873u64, Right::Read as u64);
+fn test_macros() {
     assert_eq!(cap_right!(0, 1), 144115188075855873u64);
     assert_eq!(right_or!(Right::Read, Right::Write), 144115188075855875u64);
 }
