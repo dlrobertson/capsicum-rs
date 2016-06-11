@@ -127,29 +127,6 @@ impl PartialEq for Rights {
 
 pub struct RightsBuilder(u64);
 
-/// ## Limit capability rights to files
-///
-/// ```ignore
-///  use capsicum::{Right, RightsBuilder};
-///  use std::fs::{self, File};
-///
-///  let x = rand::random::<u8>();
-///
-///  let mut file = File::open("/tmp/foo").unwrap();
-///  let mut s = String::new();
-///
-///  let mut builder = RightsBuilder::new(Right::Seek);
-///
-///  if if x < 42 {
-///      builder.add(Right::Read);
-///  }
-///
-///  match ok_file.read_to_string(&mut s) {
-///      Ok(_) if other_value => println!("Since other value is true we allowed reading"),
-///      Err(_) if !other_value => panic!("Since other value is false we did not allow reading"),
-///      _ => panic!("Application is not properly sandboxed!")
-///  }
-/// ```
 impl RightsBuilder {
     pub fn new(right: Right) -> RightsBuilder {
         RightsBuilder(right as u64)
