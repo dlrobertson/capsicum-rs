@@ -1,0 +1,2 @@
+mod rights;
+mod cap;
