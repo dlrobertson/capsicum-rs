@@ -216,6 +216,4 @@ extern "C" {
 // TODO
 // fn cap_ioctls_limit(fd: isize, cmds: u64, ncmds: usize) -> isize;
 // fn cap_ioctls_get(fd: isize, cmds: u64, maxcmds: usize) -> isize;
-// fn cap_fcntls_limit(fd: isize, fcntlrights: u32) -> isize;
-// fn cap_fcntls_get(fd: isize, fcntlrightsp: *mut u32) -> isize;
 }
