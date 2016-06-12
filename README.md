@@ -1,4 +1,6 @@
-# capsicum-rs
+# capsicum
+
+[![Current Version](https://img.shields.io/crates/v/capsicum.svg)](https://crates.io/crates/capsicum)
 
 ## Contain the awesome!
 
