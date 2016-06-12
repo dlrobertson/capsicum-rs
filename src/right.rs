@@ -3,6 +3,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![allow(unused)]
+#![allow(dead_code)]
+#![allow(non_camel_case_types)]
+
+use common::{CapErr, CapResult, CapRights};
+use std::os::unix::io::AsRawFd;
+
 pub const RIGHTS_VERSION: usize = 0;
 
 macro_rules! cap_right {
@@ -18,6 +24,7 @@ macro_rules! right_or {
 }
 
 #[repr(u64)]
+#[derive(Debug)]
 pub enum Right {
     Null = 0,
     Read = cap_right!(0, 0x1u64),
@@ -109,6 +116,184 @@ pub enum Right {
     All1 = cap_right!(1, 0x1FFFFFu64),
     Unused122 = cap_right!(1, 0x200000u64),
     Unused157 = cap_right!(1, 0x100000000000000u64),
+}
+
+#[derive(Debug, Default)]
+pub struct RightsBuilder(u64);
+
+impl RightsBuilder {
+    pub fn new(right: Right) -> RightsBuilder {
+        RightsBuilder(right as u64)
+    }
+
+    pub fn add<'a>(&'a mut self, right: Right) -> &'a mut RightsBuilder {
+        self.0 |= right as u64;
+        self
+    }
+
+    pub fn finalize(&self) -> CapResult<FileRights> {
+        FileRights::new(self.0)
+    }
+
+    pub fn raw(&self) -> u64 {
+        self.0
+    }
+
+    pub fn remove<'a>(&'a mut self, right: Right) -> &'a mut RightsBuilder {
+        self.0 = (self.0 & !(right as u64)) | 0x200000000000000;
+        self
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct FileRights(cap_rights_t);
+
+impl FileRights {
+    pub fn new(raw_rights: u64) -> CapResult<FileRights> {
+        unsafe {
+            let mut empty_rights = cap_rights_t { cr_rights: [0; RIGHTS_VERSION + 2] };
+            let rights_ptr = __cap_rights_init(RIGHTS_VERSION,
+                                               &mut empty_rights as *mut cap_rights_t,
+                                               raw_rights,
+                                               0u64);
+            if rights_ptr.is_null() {
+                Err(CapErr::Generic("cap_rights_init failed".to_owned()))
+            } else {
+                let rights = FileRights(empty_rights);
+                if rights.is_valid() {
+                    Ok(rights)
+                } else {
+                    Err(CapErr::Invalid("File rights were not valid".to_owned()))
+                }
+            }
+        }
+    }
+
+    pub fn from_file<T: AsRawFd>(fd: &T) -> CapResult<FileRights> {
+        unsafe {
+            let mut empty_rights = cap_rights_t { cr_rights: [0; RIGHTS_VERSION + 2] };
+            let res = __cap_rights_get(RIGHTS_VERSION,
+                                       fd.as_raw_fd() as isize,
+                                       &mut empty_rights as *mut cap_rights_t);
+            if res < 0 {
+                Err(CapErr::Get("cap_rights_get failed".to_owned()))
+            } else {
+                let rights = FileRights(empty_rights);
+                if rights.is_valid() {
+                    Ok(rights)
+                } else {
+                    Err(CapErr::Invalid("cap_rights_get returned invalid rights".to_owned()))
+                }
+            }
+        }
+    }
+
+    pub fn contains(&self, other: &FileRights) -> bool {
+        unsafe { cap_rights_contains(&self.0, &other.0) }
+    }
+
+    pub fn is_set(&self, raw_rights: Right) -> bool {
+        unsafe { __cap_rights_is_set(&self.0 as *const cap_rights_t, raw_rights as u64, 0u64) }
+    }
+
+    pub fn is_valid(&self) -> bool {
+        unsafe { cap_rights_is_valid(&self.0) }
+    }
+
+    pub fn merge(&mut self, other: &FileRights) -> CapResult<()> {
+        unsafe {
+            let result = cap_rights_merge(&mut self.0 as *mut cap_rights_t, &other.0);
+            if result.is_null() {
+                Err(CapErr::Merge("cap_rights_merge failed!".to_owned()))
+            } else {
+                Ok(())
+            }
+        }
+    }
+
+    pub fn remove(&mut self, other: &FileRights) -> CapResult<()> {
+        unsafe {
+            let result = cap_rights_remove(&mut self.0 as *mut cap_rights_t, &other.0);
+            if result.is_null() {
+                Err(CapErr::Remove("cap_rights_remove failed!".to_owned()))
+            } else {
+                Ok(())
+            }
+        }
+    }
+
+    pub fn set(&mut self, raw_rights: Right) -> CapResult<()> {
+        unsafe {
+            let result =
+                __cap_rights_set(&mut self.0 as *mut cap_rights_t, raw_rights as u64, 0u64);
+            if result.is_null() {
+                Err(CapErr::Set("cap_rights_set failed!".to_owned()))
+            } else {
+                Ok(())
+            }
+        }
+    }
+
+    pub fn clear(&mut self, raw_rights: Right) -> CapResult<()> {
+        unsafe {
+            let result =
+                __cap_rights_clear(&mut self.0 as *mut cap_rights_t, raw_rights as u64, 0u64);
+            if result.is_null() {
+                Err(CapErr::Clear("cap_rights_clear failed!".to_owned()))
+            } else {
+                Ok(())
+            }
+        }
+    }
+}
+
+impl CapRights for FileRights {
+    fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
+        unsafe {
+            let res = cap_rights_limit(fd.as_raw_fd() as isize,
+                                       &self.0 as *const cap_rights_t);
+            if res < 0 {
+                Err(CapErr::Limit("cap_rights_limit failed!".to_owned()))
+            } else {
+                Ok(())
+            }
+        }
+    }
+}
+
+impl PartialEq for FileRights {
+    fn eq(&self, other: &FileRights) -> bool {
+        self.0.cr_rights == other.0.cr_rights
+    }
+}
+
+#[repr(C)]
+#[derive(Debug, Default)]
+pub struct cap_rights_t {
+    cr_rights: [u64; RIGHTS_VERSION + 2],
+}
+
+extern "C" {
+    fn cap_rights_is_valid(rights: *const cap_rights_t) -> bool;
+    fn cap_rights_merge(dst: *mut cap_rights_t, src: *const cap_rights_t) -> *mut cap_rights_t;
+    fn cap_rights_remove(dst: *mut cap_rights_t, src: *const cap_rights_t) -> *mut cap_rights_t;
+    fn cap_rights_contains(big: *const cap_rights_t, little: *const cap_rights_t) -> bool;
+    fn cap_rights_limit(fd: isize, rights: *const cap_rights_t) -> isize;
+    fn __cap_rights_init(version: usize,
+                         rights: *mut cap_rights_t,
+                         raw_rights: u64,
+                         sentinel: u64)
+                         -> *mut cap_rights_t;
+    fn __cap_rights_set(rights: *mut cap_rights_t,
+                        raw_rights: u64,
+                        sentinel: u64)
+                        -> *mut cap_rights_t;
+    fn __cap_rights_clear(rights: *mut cap_rights_t,
+                          raw_rights: u64,
+                          sentinel: u64)
+                          -> *mut cap_rights_t;
+    fn __cap_rights_is_set(rights: *const cap_rights_t, raw_rights: u64, sentinel: u64) -> bool;
+    fn __cap_rights_get(version: usize, fd: isize, rightsp: *mut cap_rights_t) -> isize;
 }
 
 #[test]

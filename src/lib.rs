@@ -29,7 +29,7 @@
 /// ## Limit capability rights to files
 ///
 /// ```ignore
-/// use capsicum::{Right, RightsBuilder};
+/// use capsicum::{CapRights, Right, RightsBuilder};
 /// use std::fs::File;
 /// use std::io::Read;
 
@@ -46,7 +46,7 @@
 
 /// let rights = builder.finalize().unwrap();
 
-/// rights.limit(&ok_file);
+/// rights.limit(&ok_file).unwrap();
 ///
 /// match ok_file.read_to_string(&mut s) {
 ///     Ok(_) if x => println!("Allowed reading: x = {} ", x),
@@ -56,11 +56,43 @@
 /// ```
 
 mod right;
-mod cap;
 mod fcntl;
 mod ioctl;
+mod common;
 
-pub use right::Right;
-pub use cap::{enter, Rights, RightsBuilder, sandboxed};
-pub use fcntl::{Fcntl, Fcntls, FcntlsBuilder};
-pub use ioctl::{Ioctls, IoctlsBuilder};
+pub use common::{CapResult, CapErr, CapRights};
+pub use right::{Right, FileRights, RightsBuilder};
+pub use fcntl::{Fcntl, FcntlRights, FcntlsBuilder};
+pub use ioctl::{IoctlRights, IoctlsBuilder};
+
+pub fn enter() -> Result<(), ()> {
+    if unsafe { cap_enter() } < 0 {
+        Err(())
+    } else {
+        Ok(())
+    }
+}
+
+pub fn sandboxed() -> bool {
+    if unsafe { cap_sandboxed() } == 1 {
+        true
+    } else {
+        false
+    }
+}
+
+pub fn get_mode() -> Result<usize, ()> {
+    let mut mode = 0;
+    unsafe {
+        if cap_getmode(&mut mode as *mut usize) != 0 {
+            return Err(());
+        }
+    }
+    Ok(mode)
+}
+
+extern "C" {
+    fn cap_enter() -> isize;
+    fn cap_sandboxed() -> isize;
+    fn cap_getmode(modep: *mut usize) -> isize;
+}

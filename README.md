@@ -52,7 +52,7 @@ cargo build
 #### Limit capability rights to files
 
 ```rust
-    use capsicum::{Right, RightsBuilder};
+    use capsicum::{CapRights, Right, RightsBuilder};
     use std::fs::File;
     use std::io::Read;
 
@@ -69,7 +69,7 @@ cargo build
 
     let rights = builder.finalize().unwrap();
 
-    rights.limit(&ok_file);
+    rights.limit(&ok_file).unwrap();
     
     match ok_file.read_to_string(&mut s) {
         Ok(_) if x => println!("Allowed reading: x = {} ", x),

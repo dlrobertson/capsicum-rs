@@ -2,10 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fs::File;
+use common::{CapErr, CapResult, CapRights};
 use std::os::unix::io::AsRawFd;
 
 #[repr(u32)]
+#[derive(Debug)]
 pub enum Fcntl {
     GetFL = 0x8,
     SetFL = 0x10,
@@ -13,6 +14,7 @@ pub enum Fcntl {
     SetOwn = 0x40,
 }
 
+#[derive(Debug, Default)]
 pub struct FcntlsBuilder(u32);
 
 impl FcntlsBuilder {
@@ -20,53 +22,61 @@ impl FcntlsBuilder {
         FcntlsBuilder(right as u32)
     }
 
-    pub fn empty() -> FcntlsBuilder {
-        FcntlsBuilder(0)
-    }
-
     pub fn add<'a>(&'a mut self, right: Fcntl) -> &'a mut FcntlsBuilder {
         self.0 |= right as u32;
         self
+    }
+
+    pub fn finalize(&self) -> FcntlRights {
+        FcntlRights::new(self.0)
+    }
+
+    pub fn raw(&self) -> u32 {
+        self.0
     }
 
     pub fn remove<'a>(&'a mut self, right: Fcntl) -> &'a mut FcntlsBuilder {
         self.0 = self.0 & (!(right as u32));
         self
     }
-
-    pub fn finalize(self) -> Fcntls {
-        Fcntls::new(self.0)
-    }
-
-    pub fn bits(&self) -> u32 {
-        self.0
-    }
 }
 
-pub struct Fcntls(u32);
+#[derive(Debug, Default)]
+pub struct FcntlRights(u32);
 
-impl Fcntls {
-    pub fn new(right: u32) -> Fcntls {
-        Fcntls(right)
+impl FcntlRights {
+    pub fn new(right: u32) -> FcntlRights {
+        FcntlRights(right)
     }
 
-    pub fn from_file(file: &File) -> Result<Fcntls, ()> {
+    pub fn from_file<T: AsRawFd>(fd: &T) -> CapResult<FcntlRights> {
         unsafe {
             let mut empty_fcntls = 0;
-            let res = cap_fcntls_get(file.as_raw_fd() as isize, &mut empty_fcntls as *mut u32);
+            let res = cap_fcntls_get(fd.as_raw_fd() as isize, &mut empty_fcntls as *mut u32);
             if res < 0 {
-                Err(())
+                Err(CapErr::Get("cap_fcntls_get failed".to_owned()))
             } else {
-                Ok(Fcntls(empty_fcntls))
+                Ok(FcntlRights(empty_fcntls))
             }
         }
     }
+}
 
-    pub fn limit(&self, file: &File) -> isize {
+impl CapRights for FcntlRights {
+    fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
         unsafe {
-            let fd = file.as_raw_fd() as isize;;
-            cap_fcntls_limit(fd, self.0 as u32)
+            if cap_fcntls_limit(fd.as_raw_fd() as isize, self.0 as u32) < 0 {
+                Err(CapErr::Get("cap_fcntls_limit failed".to_owned()))
+            } else {
+                Ok(())
+            }
         }
+    }
+}
+
+impl PartialEq for FcntlRights {
+    fn eq(&self, other: &FcntlRights) -> bool {
+        self.0 == other.0
     }
 }
 

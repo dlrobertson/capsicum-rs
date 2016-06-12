@@ -2,9 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fs::File;
 use std::os::unix::io::AsRawFd;
+use common::{CapErr, CapResult, CapRights};
 
+#[derive(Debug, Default)]
 pub struct IoctlsBuilder(Vec<u64>);
 
 impl IoctlsBuilder {
@@ -12,13 +13,13 @@ impl IoctlsBuilder {
         IoctlsBuilder(vec![right])
     }
 
-    pub fn empty() -> IoctlsBuilder {
-        IoctlsBuilder(Vec::new())
-    }
-
     pub fn add<'a>(&'a mut self, right: u64) -> &'a mut IoctlsBuilder {
         self.0.push(right);
         self
+    }
+
+    pub fn raw(&self) -> Vec<u64> {
+        self.0.clone()
     }
 
     pub fn remove<'a>(&'a mut self, right: u64) -> &'a mut IoctlsBuilder {
@@ -26,42 +27,49 @@ impl IoctlsBuilder {
         self
     }
 
-    pub fn finalize(self) -> Ioctls {
-        Ioctls::new(self.0)
-    }
-
-    pub fn raw(&self) -> Vec<u64> {
-        self.0.clone()
+    pub fn finalize(&self) -> IoctlRights {
+        IoctlRights::new(self.0.clone())
     }
 }
 
-#[derive(Debug)]
-pub struct Ioctls(Vec<u64>);
+#[derive(Debug, Default)]
+pub struct IoctlRights(Vec<u64>);
 
-impl Ioctls {
-    pub fn new(rights: Vec<u64>) -> Ioctls {
-        Ioctls(rights)
+impl IoctlRights {
+    pub fn new(rights: Vec<u64>) -> IoctlRights {
+        IoctlRights(rights)
     }
 
-    pub fn from_file(file: &File, len: usize) -> Result<Ioctls, ()> {
+    pub fn from_file<T: AsRawFd>(fd: &T, len: usize) -> CapResult<IoctlRights> {
         unsafe {
             let empty_ioctls = Vec::with_capacity(len).as_mut_ptr();
-            let res = cap_ioctls_get(file.as_raw_fd() as isize, empty_ioctls, len);
+            let res = cap_ioctls_get(fd.as_raw_fd() as isize, empty_ioctls, len);
             let res_vec = Vec::from_raw_parts(empty_ioctls, len, len);
             if res < 0 {
-                Err(())
+                Err(CapErr::Get("cap_ioctls_get failed".to_owned()))
             } else {
-                Ok(Ioctls(res_vec))
+                Ok(IoctlRights(res_vec))
             }
         }
     }
+}
 
-    pub fn limit(&self, file: &File) -> isize {
+impl CapRights for IoctlRights {
+    fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
         unsafe {
-            let fd = file.as_raw_fd() as isize;;
             let len = self.0.len();
-            cap_ioctls_limit(fd, self.0.as_ptr(), len)
+            if cap_ioctls_limit(fd.as_raw_fd() as isize, self.0.as_ptr(), len) < 0 {
+                Err(CapErr::Limit("cap_ioctls_limit failed".to_owned()))
+            } else {
+                Ok(())
+            }
         }
+    }
+}
+
+impl PartialEq for IoctlRights {
+    fn eq(&self, other: &IoctlRights) -> bool {
+        self.0 == other.0
     }
 }
 

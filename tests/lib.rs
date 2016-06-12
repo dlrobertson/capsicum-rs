@@ -6,13 +6,17 @@
 extern crate capsicum;
 
 mod tests {
-    use capsicum::{enter, Right, Rights, RightsBuilder, Ioctls, IoctlsBuilder, sandboxed};
+    use capsicum::{enter, sandboxed, CapRights};
+    use capsicum::{Right, FileRights, RightsBuilder};
+    use capsicum::{IoctlRights, IoctlsBuilder};
+    use capsicum::{Fcntl, FcntlRights, FcntlsBuilder};
     use std::fs;
     use std::io::{Read, Write};
 
     const TMPFILE1: &'static str = "/tmp/foo";
     const TMPFILE2: &'static str = "/tmp/bar";
     const TMPFILE3: &'static str = "/tmp/baz";
+    const TMPFILE4: &'static str = "/tmp/qux";
 
     extern {
         fn fork() -> isize;
@@ -33,7 +37,7 @@ mod tests {
                                   .add(Right::Write)
                                   .remove(Right::Lookup)
                                   .remove(Right::AclGet);
-        assert_eq!(144115188076380163, builder.bits());
+        assert_eq!(144115188076380163, builder.raw());
     }
 
     #[test]
@@ -57,9 +61,9 @@ mod tests {
 
         assert!(!rights.contains(&to_merge));
 
-        rights.limit(&file);
+        rights.limit(&file).unwrap();
 
-        let from_file = Rights::from_file(&file).unwrap();
+        let from_file = FileRights::from_file(&file).unwrap();
 
         assert_eq!(rights, from_file);
 
@@ -110,11 +114,19 @@ mod tests {
     #[test]
     fn test_ioctl() {
         let file = fs::File::create(TMPFILE3).unwrap();
-        let ioctls = IoctlsBuilder::new(9223372036854775807).finalize();
-        let x = ioctls.limit(&file);
-        if x < 0 {
-            panic!("failed!");
-        }
-        let _ = Ioctls::from_file(&file, 10);
+        let ioctls = IoctlsBuilder::new(9223372036854775807).add(1).finalize();
+        ioctls.limit(&file).unwrap();
+        let _ = IoctlRights::from_file(&file, 10).unwrap();
+        fs::remove_file(TMPFILE3).unwrap();
+    }
+
+    #[test]
+    fn test_fcntl() {
+        let file = fs::File::create(TMPFILE4).unwrap();
+        let fcntls = FcntlsBuilder::new(Fcntl::GetFL).add(Fcntl::GetOwn).finalize();
+        fcntls.limit(&file).unwrap();
+        let new_fcntls = FcntlRights::from_file(&file).unwrap();
+        assert_eq!(new_fcntls, fcntls);
+        fs::remove_file(TMPFILE4).unwrap();
     }
 }
