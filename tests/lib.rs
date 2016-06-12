@@ -6,12 +6,13 @@
 extern crate capsicum;
 
 mod tests {
-    use capsicum::{enter, Right, Rights, RightsBuilder, sandboxed};
+    use capsicum::{enter, Right, Rights, RightsBuilder, Ioctls, IoctlsBuilder, sandboxed};
     use std::fs;
     use std::io::{Read, Write};
 
     const TMPFILE1: &'static str = "/tmp/foo";
     const TMPFILE2: &'static str = "/tmp/bar";
+    const TMPFILE3: &'static str = "/tmp/baz";
 
     extern {
         fn fork() -> isize;
@@ -104,5 +105,16 @@ mod tests {
             wait();
         }
         fs::remove_file(TMPFILE2).unwrap();
+    }
+
+    #[test]
+    fn test_ioctl() {
+        let file = fs::File::create(TMPFILE3).unwrap();
+        let ioctls = IoctlsBuilder::new(9223372036854775807).finalize();
+        let x = ioctls.limit(&file);
+        if x < 0 {
+            panic!("failed!");
+        }
+        let _ = Ioctls::from_file(&file, 10);
     }
 }

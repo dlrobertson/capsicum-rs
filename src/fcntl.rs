@@ -10,7 +10,7 @@ pub enum Fcntl {
     GetFL = 0x8,
     SetFL = 0x10,
     GetOwn = 0x20,
-    SetOwn = 0x40
+    SetOwn = 0x40,
 }
 
 pub struct FcntlsBuilder(u32);
@@ -34,7 +34,7 @@ impl FcntlsBuilder {
         self
     }
 
-    pub fn finalize(&self) -> Fcntls {
+    pub fn finalize(self) -> Fcntls {
         Fcntls::new(self.0)
     }
 
@@ -53,8 +53,7 @@ impl Fcntls {
     pub fn from_file(file: &File) -> Result<Fcntls, ()> {
         unsafe {
             let mut empty_fcntls = 0;
-            let res = cap_fcntls_get(file.as_raw_fd() as isize,
-                                     &mut empty_fcntls as *mut u32);
+            let res = cap_fcntls_get(file.as_raw_fd() as isize, &mut empty_fcntls as *mut u32);
             if res < 0 {
                 Err(())
             } else {

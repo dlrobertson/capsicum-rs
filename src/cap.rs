@@ -146,7 +146,7 @@ impl RightsBuilder {
         self
     }
 
-    pub fn finalize(&self) -> Result<Rights, ()> {
+    pub fn finalize(self) -> Result<Rights, ()> {
         Rights::new(self.0)
     }
 
@@ -213,7 +213,4 @@ extern "C" {
     fn cap_sandboxed() -> isize;
     fn cap_getmode(modep: *mut usize) -> isize;
     fn __cap_rights_get(version: usize, fd: isize, rightsp: *mut cap_rights_t) -> isize;
-// TODO
-// fn cap_ioctls_limit(fd: isize, cmds: u64, ncmds: usize) -> isize;
-// fn cap_ioctls_get(fd: isize, cmds: u64, maxcmds: usize) -> isize;
 }

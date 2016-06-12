@@ -57,8 +57,10 @@
 
 mod right;
 mod cap;
-mod fnctl;
+mod fcntl;
+mod ioctl;
 
 pub use right::Right;
 pub use cap::{enter, Rights, RightsBuilder, sandboxed};
-pub use fnctl::{Fcntl, Fcntls, FcntlsBuilder};
+pub use fcntl::{Fcntl, Fcntls, FcntlsBuilder};
+pub use ioctl::{Ioctls, IoctlsBuilder};
