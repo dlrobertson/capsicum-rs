@@ -55,44 +55,17 @@
 /// }
 /// ```
 
-mod right;
+extern crate libc;
+
+mod common;
 mod fcntl;
 mod ioctl;
-mod common;
+mod process;
+mod right;
+pub mod util;
 
 pub use common::{CapResult, CapErr, CapRights};
-pub use right::{Right, FileRights, RightsBuilder};
 pub use fcntl::{Fcntl, FcntlRights, FcntlsBuilder};
 pub use ioctl::{IoctlRights, IoctlsBuilder};
-
-pub fn enter() -> Result<(), ()> {
-    if unsafe { cap_enter() } < 0 {
-        Err(())
-    } else {
-        Ok(())
-    }
-}
-
-pub fn sandboxed() -> bool {
-    if unsafe { cap_sandboxed() } == 1 {
-        true
-    } else {
-        false
-    }
-}
-
-pub fn get_mode() -> Result<usize, ()> {
-    let mut mode = 0;
-    unsafe {
-        if cap_getmode(&mut mode as *mut usize) != 0 {
-            return Err(());
-        }
-    }
-    Ok(mode)
-}
-
-extern "C" {
-    fn cap_enter() -> isize;
-    fn cap_sandboxed() -> isize;
-    fn cap_getmode(modep: *mut usize) -> isize;
-}
+pub use process::{get_mode, enter, sandboxed};
+pub use right::{Right, FileRights, RightsBuilder};

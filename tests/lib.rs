@@ -5,7 +5,7 @@
 
 extern crate capsicum;
 
-mod tests {
+mod base {
     use capsicum::{enter, sandboxed, CapRights};
     use capsicum::{Right, FileRights, RightsBuilder};
     use capsicum::{IoctlRights, IoctlsBuilder};
@@ -68,7 +68,7 @@ mod tests {
         assert_eq!(rights, from_file);
 
         let c_string = [0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20,
-                        0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21];
+                        0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00];
 
         // Write should be limitted
         if let Ok(_) = file.write_all(&c_string) {
@@ -89,26 +89,28 @@ mod tests {
 
     #[test]
     fn test_enter() {
-        if unsafe { fork() } == 0 {
-            fs::File::create(TMPFILE2).unwrap();
-            let mut ok_file = fs::File::open(TMPFILE2).unwrap();
-
-            enter().expect("cap_enter failed!");
-            assert!(sandboxed(), "application is not properly sandboxed");
-
-            if let Ok(_) = fs::File::open(TMPFILE1) {
-                panic!("application is not properly sandboxed!");
-            }
-
-            let mut s = String::new();
-            if let Err(_) = ok_file.read_to_string(&mut s) {
-                panic!("application is not properly sandboxed!");
-            }
-        }
         unsafe {
-            wait();
+            let pid = fork();
+            if pid == 0 {
+                fs::File::create(TMPFILE2).unwrap();
+                let mut ok_file = fs::File::open(TMPFILE2).unwrap();
+
+                enter().expect("cap_enter failed!");
+                assert!(sandboxed(), "application is not properly sandboxed");
+
+                if let Ok(_) = fs::File::open(TMPFILE1) {
+                    panic!("application is not properly sandboxed!");
+                }
+
+                let mut s = String::new();
+                if let Err(_) = ok_file.read_to_string(&mut s) {
+                    panic!("application is not properly sandboxed!");
+                }
+            } else {
+                wait();
+                fs::remove_file(TMPFILE2).unwrap();
+            }
         }
-        fs::remove_file(TMPFILE2).unwrap();
     }
 
     #[test]
@@ -128,5 +130,22 @@ mod tests {
         let new_fcntls = FcntlRights::from_file(&file).unwrap();
         assert_eq!(new_fcntls, fcntls);
         fs::remove_file(TMPFILE4).unwrap();
+    }
+}
+
+mod util {
+    use std::ffi::CString;
+    use capsicum::{self, CapRights, Right, RightsBuilder};
+    use capsicum::util::Directory;
+    #[test]
+    fn test_basic_dir() {
+        let dir = Directory::new("./src").unwrap();
+        let rights = RightsBuilder::new(Right::Read)
+            .add(Right::Lookup)
+            .finalize().unwrap();
+        rights.limit(&dir).unwrap();
+        capsicum::enter().unwrap();
+        let path = CString::new("lib.rs").unwrap();
+        let _ = dir.open_file(path, 0, None).unwrap();
     }
 }

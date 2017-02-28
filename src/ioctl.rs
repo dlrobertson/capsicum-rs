@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::os::unix::io::AsRawFd;
-use common::{CapErr, CapResult, CapRights};
+use common::{CapErr, CapErrType, CapResult, CapRights};
 
 #[derive(Debug, Default)]
 pub struct IoctlsBuilder(Vec<u64>);
@@ -46,7 +46,7 @@ impl IoctlRights {
             let res = cap_ioctls_get(fd.as_raw_fd() as isize, empty_ioctls, len);
             let res_vec = Vec::from_raw_parts(empty_ioctls, len, len);
             if res < 0 {
-                Err(CapErr::Get("cap_ioctls_get failed".to_owned()))
+                Err(CapErr::from(CapErrType::Get))
             } else {
                 Ok(IoctlRights(res_vec))
             }
@@ -59,7 +59,7 @@ impl CapRights for IoctlRights {
         unsafe {
             let len = self.0.len();
             if cap_ioctls_limit(fd.as_raw_fd() as isize, self.0.as_ptr(), len) < 0 {
-                Err(CapErr::Limit("cap_ioctls_limit failed".to_owned()))
+                Err(CapErr::from(CapErrType::Limit))
             } else {
                 Ok(())
             }

@@ -10,3 +10,6 @@ Simple intuitive Rust bindings for the FreeBSD capsicum framework
 build = "build.rs"
 readme = "README.md"
 keywords = ["sandbox", "FreeBSD", "capsicum"]
+
+[dependencies]
+libc = "0.2.20"

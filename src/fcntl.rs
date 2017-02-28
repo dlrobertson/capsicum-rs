@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use common::{CapErr, CapResult, CapRights};
+use common::{CapErr, CapErrType, CapResult, CapRights};
 use std::os::unix::io::AsRawFd;
 
 #[repr(u32)]
@@ -54,7 +54,7 @@ impl FcntlRights {
             let mut empty_fcntls = 0;
             let res = cap_fcntls_get(fd.as_raw_fd() as isize, &mut empty_fcntls as *mut u32);
             if res < 0 {
-                Err(CapErr::Get("cap_fcntls_get failed".to_owned()))
+                Err(CapErr::from(CapErrType::Get))
             } else {
                 Ok(FcntlRights(empty_fcntls))
             }
@@ -66,7 +66,7 @@ impl CapRights for FcntlRights {
     fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
         unsafe {
             if cap_fcntls_limit(fd.as_raw_fd() as isize, self.0 as u32) < 0 {
-                Err(CapErr::Get("cap_fcntls_limit failed".to_owned()))
+                Err(CapErr::from(CapErrType::Get))
             } else {
                 Ok(())
             }
