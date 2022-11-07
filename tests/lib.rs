@@ -117,9 +117,12 @@ mod base {
     #[test]
     fn test_ioctl() {
         let file = fs::File::create(TMPFILE3).unwrap();
-        let ioctls = IoctlsBuilder::new(9223372036854775807).add(1).finalize();
+        let ioctls = IoctlsBuilder::new(i64::max_value() as u64)
+            .add(1)
+            .finalize();
         ioctls.limit(&file).unwrap();
-        let _ = IoctlRights::from_file(&file, 10).unwrap();
+        let limited = IoctlRights::from_file(&file, 10).unwrap();
+        assert_eq!(ioctls, limited);
         fs::remove_file(TMPFILE3).unwrap();
     }
 

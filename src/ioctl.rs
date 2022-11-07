@@ -2,8 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::os::unix::io::AsRawFd;
+use std::{
+    convert::TryFrom,
+    os::unix::io::AsRawFd
+};
 use common::{CapErr, CapErrType, CapResult, CapRights};
+
+const CAP_IOCTLS_ALL: isize = isize::max_value();
 
 #[derive(Debug, Default)]
 pub struct IoctlsBuilder(Vec<u64>);
@@ -42,13 +47,19 @@ impl IoctlRights {
 
     pub fn from_file<T: AsRawFd>(fd: &T, len: usize) -> CapResult<IoctlRights> {
         unsafe {
-            let empty_ioctls = Vec::with_capacity(len).as_mut_ptr();
-            let res = cap_ioctls_get(fd.as_raw_fd() as isize, empty_ioctls, len);
-            let res_vec = Vec::from_raw_parts(empty_ioctls, len, len);
-            if res < 0 {
-                Err(CapErr::from(CapErrType::Get))
+            let mut cmds = Vec::with_capacity(len);
+            let res = cap_ioctls_get(fd.as_raw_fd() as isize, cmds.as_mut_ptr(), len);
+            if res == CAP_IOCTLS_ALL {
+                todo!()
+            } else if let Ok(rlen) = usize::try_from(res) {
+                if rlen > len {
+                    panic!("cap_ioctls_get overflowed our buffer")
+                } else {
+                    cmds.set_len(rlen);
+                    Ok(IoctlRights(cmds))
+                }
             } else {
-                Ok(IoctlRights(res_vec))
+                Err(CapErr::from(CapErrType::Get))
             }
         }
     }
