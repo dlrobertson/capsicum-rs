@@ -19,10 +19,6 @@ mod base {
     const TMPFILE3: &str = "/tmp/baz";
     const TMPFILE4: &str = "/tmp/qux";
 
-    extern {
-        fn fork() -> isize;
-        fn wait() -> isize;
-    }
 
     #[test]
     fn test_rights_right() {
@@ -91,7 +87,7 @@ mod base {
     #[test]
     fn test_enter() {
         unsafe {
-            let pid = fork();
+            let pid = libc::fork();
             if pid == 0 {
                 fs::File::create(TMPFILE2).unwrap();
                 let mut ok_file = fs::File::open(TMPFILE2).unwrap();
@@ -108,7 +104,7 @@ mod base {
                     panic!("application is not properly sandboxed!");
                 }
             } else {
-                wait();
+                assert_eq!(pid, libc::waitpid(pid, std::ptr::null_mut(), 0));
                 fs::remove_file(TMPFILE2).unwrap();
             }
         }
