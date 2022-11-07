@@ -22,7 +22,7 @@ impl FcntlsBuilder {
         FcntlsBuilder(right as u32)
     }
 
-    pub fn add<'a>(&'a mut self, right: Fcntl) -> &'a mut FcntlsBuilder {
+    pub fn add(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
         self.0 |= right as u32;
         self
     }
@@ -35,8 +35,8 @@ impl FcntlsBuilder {
         self.0
     }
 
-    pub fn remove<'a>(&'a mut self, right: Fcntl) -> &'a mut FcntlsBuilder {
-        self.0 = self.0 & (!(right as u32));
+    pub fn remove(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
+        self.0 &= !(right as u32);
         self
     }
 }
@@ -65,7 +65,7 @@ impl FcntlRights {
 impl CapRights for FcntlRights {
     fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
         unsafe {
-            if cap_fcntls_limit(fd.as_raw_fd() as isize, self.0 as u32) < 0 {
+            if cap_fcntls_limit(fd.as_raw_fd() as isize, self.0) < 0 {
                 Err(CapErr::from(CapErrType::Get))
             } else {
                 Ok(())

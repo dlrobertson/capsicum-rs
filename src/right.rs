@@ -129,7 +129,7 @@ impl RightsBuilder {
         RightsBuilder(right as u64)
     }
 
-    pub fn add<'a>(&'a mut self, right: Right) -> &'a mut RightsBuilder {
+    pub fn add(&mut self, right: Right) -> &mut RightsBuilder {
         self.0 |= right as u64;
         self
     }
@@ -142,7 +142,7 @@ impl RightsBuilder {
         self.0
     }
 
-    pub fn remove<'a>(&'a mut self, right: Right) -> &'a mut RightsBuilder {
+    pub fn remove(&mut self, right: Right) -> &mut RightsBuilder {
         self.0 = (self.0 & !(right as u64)) | 0x200000000000000;
         self
     }

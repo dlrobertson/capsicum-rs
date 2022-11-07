@@ -11,11 +11,7 @@ pub fn enter() -> Result<(), ()> {
 }
 
 pub fn sandboxed() -> bool {
-    if unsafe { cap_sandboxed() } == 1 {
-        true
-    } else {
-        false
-    }
+    unsafe { cap_sandboxed() == 1 }
 }
 
 pub fn get_mode() -> Result<usize, ()> {

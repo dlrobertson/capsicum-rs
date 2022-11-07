@@ -13,7 +13,7 @@ impl IoctlsBuilder {
         IoctlsBuilder(vec![right])
     }
 
-    pub fn add<'a>(&'a mut self, right: u64) -> &'a mut IoctlsBuilder {
+    pub fn add(&mut self, right: u64) -> &mut IoctlsBuilder {
         self.0.push(right);
         self
     }
@@ -22,7 +22,7 @@ impl IoctlsBuilder {
         self.0.clone()
     }
 
-    pub fn remove<'a>(&'a mut self, right: u64) -> &'a mut IoctlsBuilder {
+    pub fn remove(&mut self, right: u64) -> &mut IoctlsBuilder {
         self.0.retain(|&item| item != right);
         self
     }
