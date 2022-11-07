@@ -4,7 +4,7 @@
 
 /// ## Entering capability mode
 ///
-/// ```ignore
+/// ```no_run
 ///  use capsicum::{enter, sandboxed};
 ///  use std::fs::File;
 ///  use std::io::Read;
@@ -28,31 +28,23 @@
 ///
 /// ## Limit capability rights to files
 ///
-/// ```ignore
+/// ```no_run
 /// use capsicum::{CapRights, Right, RightsBuilder};
 /// use std::fs::File;
 /// use std::io::Read;
 
-/// let x = rand::random::<bool>();
-///
 /// let mut ok_file = File::open("/tmp/foo").unwrap();
 /// let mut s = String::new();
 ///
 /// let mut builder = RightsBuilder::new(Right::Seek);
 ///
-/// if x {
-///     builder.add(Right::Read);
-/// }
-
+/// builder.add(Right::Read);
+///
 /// let rights = builder.finalize().unwrap();
-
+///
 /// rights.limit(&ok_file).unwrap();
 ///
-/// match ok_file.read_to_string(&mut s) {
-///     Ok(_) if x => println!("Allowed reading: x = {} ", x),
-///     Err(_) if !x => println!("Did not allow reading: x = {}", x),
-///     _ => panic!("Not properly sandboxed"),
-/// }
+/// assert!(ok_file.read_to_string(&mut s).is_ok());
 /// ```
 
 extern crate libc;
