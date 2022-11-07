@@ -13,15 +13,12 @@ mod base {
     use std::fs;
     use std::io::{Read, Write};
 
-    const TMPFILE1: &'static str = "/tmp/foo";
-    const TMPFILE2: &'static str = "/tmp/bar";
-    const TMPFILE3: &'static str = "/tmp/baz";
-    const TMPFILE4: &'static str = "/tmp/qux";
+    // TODO: use tempfile instead of hard-coding pathnames.
+    const TMPFILE1: &str = "/tmp/foo";
+    const TMPFILE2: &str = "/tmp/bar";
+    const TMPFILE3: &str = "/tmp/baz";
+    const TMPFILE4: &str = "/tmp/qux";
 
-    extern {
-        fn fork() -> isize;
-        fn wait() -> isize;
-    }
 
     #[test]
     fn test_rights_right() {
@@ -71,7 +68,7 @@ mod base {
                         0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00];
 
         // Write should be limitted
-        if let Ok(_) = file.write_all(&c_string) {
+        if file.write_all(&c_string).is_ok() {
             fs::remove_file(TMPFILE1).unwrap();
             panic!("Rights did not correctly limit write");
         }
@@ -90,7 +87,7 @@ mod base {
     #[test]
     fn test_enter() {
         unsafe {
-            let pid = fork();
+            let pid = libc::fork();
             if pid == 0 {
                 fs::File::create(TMPFILE2).unwrap();
                 let mut ok_file = fs::File::open(TMPFILE2).unwrap();
@@ -98,16 +95,16 @@ mod base {
                 enter().expect("cap_enter failed!");
                 assert!(sandboxed(), "application is not properly sandboxed");
 
-                if let Ok(_) = fs::File::open(TMPFILE1) {
+                if fs::File::open(TMPFILE1).is_ok() {
                     panic!("application is not properly sandboxed!");
                 }
 
                 let mut s = String::new();
-                if let Err(_) = ok_file.read_to_string(&mut s) {
+                if ok_file.read_to_string(&mut s).is_err() {
                     panic!("application is not properly sandboxed!");
                 }
             } else {
-                wait();
+                assert_eq!(pid, libc::waitpid(pid, std::ptr::null_mut(), 0));
                 fs::remove_file(TMPFILE2).unwrap();
             }
         }
@@ -116,9 +113,22 @@ mod base {
     #[test]
     fn test_ioctl() {
         let file = fs::File::create(TMPFILE3).unwrap();
-        let ioctls = IoctlsBuilder::new(9223372036854775807).add(1).finalize();
+        let ioctls = IoctlsBuilder::new(i64::max_value() as u64)
+            .add(1)
+            .finalize();
         ioctls.limit(&file).unwrap();
-        let _ = IoctlRights::from_file(&file, 10).unwrap();
+        let limited = IoctlRights::from_file(&file, 10).unwrap();
+        assert_eq!(ioctls, limited);
+        fs::remove_file(TMPFILE3).unwrap();
+    }
+
+    // https://github.com/dlrobertson/capsicum-rs/issues/5
+    #[test]
+    #[ignore = "IoctlRights cannot respresent unlimited"]
+    fn test_ioctl_unlimited() {
+        let file = fs::File::create(TMPFILE3).unwrap();
+        let _limited = IoctlRights::from_file(&file, 10).unwrap();
+        // TODO: what should limited be?
         fs::remove_file(TMPFILE3).unwrap();
     }
 

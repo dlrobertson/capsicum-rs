@@ -44,9 +44,9 @@ pub struct Directory {
 
 impl Directory {
     pub fn new(path: &str) -> io::Result<Directory> {
-        let file = try!(File::open(path));
+        let file = File::open(path)?;
         Ok(Directory {
-            file: file,
+            file,
         })
     }
 

@@ -2,34 +2,32 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-pub fn enter() -> Result<(), ()> {
+use std::io;
+
+pub fn enter() -> io::Result<()> {
     if unsafe { cap_enter() } < 0 {
-        Err(())
+        Err(io::Error::last_os_error())
     } else {
         Ok(())
     }
 }
 
 pub fn sandboxed() -> bool {
-    if unsafe { cap_sandboxed() } == 1 {
-        true
-    } else {
-        false
-    }
+    unsafe { cap_sandboxed() }
 }
 
-pub fn get_mode() -> Result<usize, ()> {
+pub fn get_mode() -> io::Result<usize> {
     let mut mode = 0;
     unsafe {
-        if cap_getmode(&mut mode as *mut usize) != 0 {
-            return Err(());
+        if cap_getmode(&mut mode) != 0 {
+            return Err(io::Error::last_os_error());
         }
     }
-    Ok(mode)
+    Ok(mode as usize)
 }
 
 extern "C" {
-    fn cap_enter() -> isize;
-    fn cap_sandboxed() -> isize;
-    fn cap_getmode(modep: *mut usize) -> isize;
+    fn cap_enter() -> i32;
+    fn cap_sandboxed() -> bool;
+    fn cap_getmode(modep: *mut u32) -> i32;
 }
