@@ -126,6 +126,16 @@ mod base {
         fs::remove_file(TMPFILE3).unwrap();
     }
 
+    // https://github.com/dlrobertson/capsicum-rs/issues/5
+    #[test]
+    #[ignore = "IoctlRights cannot respresent unlimited"]
+    fn test_ioctl_unlimited() {
+        let file = fs::File::create(TMPFILE3).unwrap();
+        let _limited = IoctlRights::from_file(&file, 10).unwrap();
+        // TODO: what should limited be?
+        fs::remove_file(TMPFILE3).unwrap();
+    }
+
     #[test]
     fn test_fcntl() {
         let file = fs::File::create(TMPFILE4).unwrap();
