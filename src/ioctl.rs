@@ -48,7 +48,7 @@ impl IoctlRights {
     pub fn from_file<T: AsRawFd>(fd: &T, len: usize) -> CapResult<IoctlRights> {
         unsafe {
             let mut cmds = Vec::with_capacity(len);
-            let res = cap_ioctls_get(fd.as_raw_fd() as isize, cmds.as_mut_ptr(), len);
+            let res = cap_ioctls_get(fd.as_raw_fd(), cmds.as_mut_ptr(), len);
             if res == CAP_IOCTLS_ALL {
                 todo!()
             } else if let Ok(rlen) = usize::try_from(res) {
@@ -69,7 +69,7 @@ impl CapRights for IoctlRights {
     fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
         unsafe {
             let len = self.0.len();
-            if cap_ioctls_limit(fd.as_raw_fd() as isize, self.0.as_ptr(), len) < 0 {
+            if cap_ioctls_limit(fd.as_raw_fd(), self.0.as_ptr(), len) < 0 {
                 Err(CapErr::from(CapErrType::Limit))
             } else {
                 Ok(())
@@ -85,6 +85,6 @@ impl PartialEq for IoctlRights {
 }
 
 extern "C" {
-    fn cap_ioctls_limit(fd: isize, cmds: *const u64, ncmds: usize) -> isize;
-    fn cap_ioctls_get(fd: isize, cmds: *mut u64, maxcmds: usize) -> isize;
+    fn cap_ioctls_limit(fd: i32, cmds: *const libc::u_long, ncmds: usize) -> i32;
+    fn cap_ioctls_get(fd: i32, cmds: *mut libc::u_long, maxcmds: usize) -> isize;
 }

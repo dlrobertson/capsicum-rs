@@ -12,7 +12,7 @@ use std::os::unix::io::{RawFd, AsRawFd};
 use std::os::raw::c_char;
 use std::ops::BitAnd;
 
-pub const RIGHTS_VERSION: usize = 0;
+pub const RIGHTS_VERSION: i32 = 0;
 
 macro_rules! cap_right {
     ($idx:expr, $bit:expr) => {
@@ -154,7 +154,7 @@ pub struct FileRights(cap_rights_t);
 impl FileRights {
     pub fn new(raw_rights: u64) -> CapResult<FileRights> {
         unsafe {
-            let mut empty_rights = cap_rights_t { cr_rights: [0; RIGHTS_VERSION + 2] };
+            let mut empty_rights = cap_rights_t { cr_rights: [0; RIGHTS_VERSION as usize + 2] };
             let rights_ptr = __cap_rights_init(RIGHTS_VERSION,
                                                &mut empty_rights as *mut cap_rights_t,
                                                raw_rights,
@@ -174,7 +174,7 @@ impl FileRights {
 
     pub fn from_file<T: AsRawFd>(fd: &T) -> CapResult<FileRights> {
         unsafe {
-            let mut empty_rights = cap_rights_t { cr_rights: [0; RIGHTS_VERSION + 2] };
+            let mut empty_rights = cap_rights_t { cr_rights: [0; RIGHTS_VERSION  as usize + 2] };
             let res = __cap_rights_get(RIGHTS_VERSION,
                                        fd.as_raw_fd(),
                                        &mut empty_rights as *mut cap_rights_t);
@@ -273,7 +273,7 @@ impl PartialEq for FileRights {
 #[repr(C)]
 #[derive(Debug, Default)]
 pub struct cap_rights_t {
-    cr_rights: [u64; RIGHTS_VERSION + 2],
+    cr_rights: [u64; RIGHTS_VERSION as usize + 2],
 }
 
 extern "C" {
@@ -282,7 +282,7 @@ extern "C" {
     fn cap_rights_remove(dst: *mut cap_rights_t, src: *const cap_rights_t) -> *mut cap_rights_t;
     fn cap_rights_contains(big: *const cap_rights_t, little: *const cap_rights_t) -> bool;
     fn cap_rights_limit(fd: RawFd, rights: *const cap_rights_t) -> RawFd;
-    fn __cap_rights_init(version: usize,
+    fn __cap_rights_init(version: i32,
                          rights: *mut cap_rights_t,
                          raw_rights: u64,
                          sentinel: u64)
@@ -296,7 +296,7 @@ extern "C" {
                           sentinel: u64)
                           -> *mut cap_rights_t;
     fn __cap_rights_is_set(rights: *const cap_rights_t, raw_rights: u64, sentinel: u64) -> bool;
-    fn __cap_rights_get(version: usize, fd: RawFd, rightsp: *mut cap_rights_t) -> RawFd;
+    fn __cap_rights_get(version: i32, fd: RawFd, rightsp: *mut cap_rights_t) -> RawFd;
 }
 
 #[test]

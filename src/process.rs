@@ -13,21 +13,21 @@ pub fn enter() -> io::Result<()> {
 }
 
 pub fn sandboxed() -> bool {
-    unsafe { cap_sandboxed() == 1 }
+    unsafe { cap_sandboxed() }
 }
 
 pub fn get_mode() -> io::Result<usize> {
     let mut mode = 0;
     unsafe {
-        if cap_getmode(&mut mode as *mut usize) != 0 {
+        if cap_getmode(&mut mode) != 0 {
             return Err(io::Error::last_os_error());
         }
     }
-    Ok(mode)
+    Ok(mode as usize)
 }
 
 extern "C" {
-    fn cap_enter() -> isize;
-    fn cap_sandboxed() -> isize;
-    fn cap_getmode(modep: *mut usize) -> isize;
+    fn cap_enter() -> i32;
+    fn cap_sandboxed() -> bool;
+    fn cap_getmode(modep: *mut u32) -> i32;
 }

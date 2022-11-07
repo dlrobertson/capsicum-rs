@@ -52,7 +52,7 @@ impl FcntlRights {
     pub fn from_file<T: AsRawFd>(fd: &T) -> CapResult<FcntlRights> {
         unsafe {
             let mut empty_fcntls = 0;
-            let res = cap_fcntls_get(fd.as_raw_fd() as isize, &mut empty_fcntls as *mut u32);
+            let res = cap_fcntls_get(fd.as_raw_fd(), &mut empty_fcntls as *mut u32);
             if res < 0 {
                 Err(CapErr::from(CapErrType::Get))
             } else {
@@ -65,7 +65,7 @@ impl FcntlRights {
 impl CapRights for FcntlRights {
     fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
         unsafe {
-            if cap_fcntls_limit(fd.as_raw_fd() as isize, self.0) < 0 {
+            if cap_fcntls_limit(fd.as_raw_fd(), self.0) < 0 {
                 Err(CapErr::from(CapErrType::Get))
             } else {
                 Ok(())
@@ -81,6 +81,6 @@ impl PartialEq for FcntlRights {
 }
 
 extern "C" {
-    fn cap_fcntls_limit(fd: isize, fcntlrights: u32) -> isize;
-    fn cap_fcntls_get(fd: isize, fcntlrightsp: *mut u32) -> isize;
+    fn cap_fcntls_limit(fd: i32, fcntlrights: u32) -> i32;
+    fn cap_fcntls_get(fd: i32, fcntlrightsp: *mut u32) -> i32;
 }
