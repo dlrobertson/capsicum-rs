@@ -13,3 +13,6 @@ keywords = ["sandbox", "FreeBSD", "capsicum"]
 
 [dependencies]
 libc = "0.2.20"
+
+[dev-dependencies]
+tempfile = "3.0"
