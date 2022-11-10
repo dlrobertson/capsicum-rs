@@ -166,7 +166,7 @@ mod base {
 mod util {
     use std::fs;
 
-    use capsicum::{self, util::Directory, CapRights, Right, RightsBuilder};
+    use capsicum::{self, util::Directory, CapErr, CapRights, Right, RightsBuilder};
     use nix::{
         sys::wait::{waitpid, WaitStatus},
         unistd::{fork, ForkResult},
@@ -175,8 +175,9 @@ mod util {
 
     use super::*;
 
+    /// We can lookup paths in a directory with Right::Lookup
     #[test]
-    fn test_basic_dir() {
+    fn test_basic_dir_ok() {
         let tdir = tempdir().unwrap();
         let dir = Directory::new(tdir.path()).unwrap();
         let fname = "foo";
@@ -192,6 +193,35 @@ mod util {
                 capsicum::enter().unwrap();
                 let _ = dir.open_file(fname, 0, None).unwrap();
                 unsafe { libc::_exit(0) };
+            }
+            ForkResult::Parent { child } => {
+                let cstat = waitpid(child, None).unwrap();
+                assert!(matches!(cstat, WaitStatus::Exited(_, 0)));
+            }
+        }
+    }
+
+    /// Without Right::Lookup, looking up paths in a directory is not allowed
+    #[test]
+    fn test_basic_dir_err() {
+        let tdir = tempdir().unwrap();
+        let dir = Directory::new(tdir.path()).unwrap();
+        let fname = "foo";
+        fs::File::create(tdir.path().join(fname)).unwrap();
+        let rights = RightsBuilder::new(Right::Read).finalize().unwrap();
+        rights.limit(&dir).unwrap();
+        match unsafe { fork() }.unwrap() {
+            ForkResult::Child => {
+                always_abort();
+                capsicum::enter().unwrap();
+                let e = dir.open_file(fname, 0, None).unwrap_err();
+                // The OS should return ENOTCAPABLE, but std::io::ErrorKind
+                // doesn't have a kind for that.
+                if matches!(e, CapErr::Invalid(_)) {
+                    unsafe { libc::_exit(0) }
+                } else {
+                    unsafe { libc::_exit(1) }
+                }
             }
             ForkResult::Parent { child } => {
                 let cstat = waitpid(child, None).unwrap();
