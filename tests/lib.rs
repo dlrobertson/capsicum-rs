@@ -3,17 +3,34 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+#![cfg_attr(nightly, feature(panic_always_abort))]
+
 extern crate capsicum;
+extern crate nix;
 extern crate tempfile;
+
+/// Switch the panic handler to SIGABRT, since stack unwinding can't be safely
+/// done after a fork.
+#[cfg(nightly)]
+fn always_abort() {
+    std::panic::always_abort();
+}
+#[cfg(not(nightly))]
+fn always_abort() {
+    // Nothing we can do.
+}
 
 mod base {
     use capsicum::{enter, sandboxed, CapRights};
     use capsicum::{Right, FileRights, RightsBuilder};
     use capsicum::{IoctlRights, IoctlsBuilder};
     use capsicum::{Fcntl, FcntlRights, FcntlsBuilder};
+    use nix::unistd::{ForkResult, fork};
+    use nix::sys::wait::{WaitStatus, waitpid};
     use std::fs;
     use std::io::{Read, Write};
     use tempfile::{NamedTempFile, tempfile};
+    use super::*;
 
 
     #[test]
@@ -79,23 +96,26 @@ mod base {
     #[test]
     fn test_enter() {
         let mut file = NamedTempFile::new().unwrap();
-        let pid = unsafe { libc::fork() };
-        if pid == 0 {
-            enter().expect("cap_enter failed!");
-            assert!(sandboxed(), "application is not properly sandboxed");
+        match unsafe { fork() }.unwrap() {
+            ForkResult::Child => {
+                always_abort();
+                enter().expect("cap_enter failed!");
+                assert!(sandboxed(), "application is not properly sandboxed");
 
-            if fs::File::open(file.path()).is_ok() {
-                panic!("application is not properly sandboxed!");
-            }
+                if fs::File::open(file.path()).is_ok() {
+                    panic!("application is not properly sandboxed!");
+                }
 
-            let mut s = String::new();
-            if file.read_to_string(&mut s).is_err() {
-                panic!("application is not properly sandboxed!");
+                let mut s = String::new();
+                if file.read_to_string(&mut s).is_err() {
+                    panic!("application is not properly sandboxed!");
+                }
+                unsafe { libc::_exit(0) };
+            },
+            ForkResult::Parent{child} => {
+                let cstat = waitpid(child, None).unwrap();
+                assert!(matches!(cstat, WaitStatus::Exited(_, 0)));
             }
-            unsafe { libc::_exit(0) };
-        } else {
-            let wpid = unsafe { libc::waitpid(pid, std::ptr::null_mut(), 0) };
-            assert_eq!(pid, wpid);
         }
     }
 
@@ -135,6 +155,10 @@ mod util {
     use std::ffi::CString;
     use capsicum::{self, CapRights, Right, RightsBuilder};
     use capsicum::util::Directory;
+    use nix::unistd::{ForkResult, fork};
+    use nix::sys::wait::{WaitStatus, waitpid};
+    use super::*;
+
     #[test]
     fn test_basic_dir() {
         let dir = Directory::new("./src").unwrap();
@@ -142,15 +166,18 @@ mod util {
             .add(Right::Lookup)
             .finalize().unwrap();
         rights.limit(&dir).unwrap();
-        let pid = unsafe { libc::fork() };
-        if pid == 0 {
-            capsicum::enter().unwrap();
-            let path = CString::new("lib.rs").unwrap();
-            let _ = dir.open_file(path, 0, None).unwrap();
-            unsafe { libc::_exit(0) };
-        } else {
-            let wpid = unsafe { libc::waitpid(pid, std::ptr::null_mut(), 0) };
-            assert_eq!(pid, wpid);
+        let path = CString::new("lib.rs").unwrap();
+        match unsafe { fork() }.unwrap() {
+            ForkResult::Child => {
+                always_abort();
+                capsicum::enter().unwrap();
+                dir.open_file(path, 0, None).unwrap();
+                unsafe { libc::_exit(0) };
+            },
+            ForkResult::Parent{child} => {
+                let cstat = waitpid(child, None).unwrap();
+                assert!(matches!(cstat, WaitStatus::Exited(_, 0)));
+            }
         }
     }
 }
