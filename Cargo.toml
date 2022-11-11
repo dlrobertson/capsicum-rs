@@ -11,6 +11,11 @@ build = "build.rs"
 readme = "README.md"
 keywords = ["sandbox", "FreeBSD", "capsicum"]
 
+[package.metadata.docs.rs]
+targets = [
+  "x86_64-unknown-freebsd",
+]
+
 [dependencies]
 libc = "0.2.20"
 
