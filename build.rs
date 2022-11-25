@@ -1,8 +1,7 @@
 extern crate version_check as rustc;
 
 #[cfg(target_os = "freebsd")]
-fn freebsd_nop() {
-}
+fn freebsd_nop() {}
 
 #[cfg(not(target_os = "freebsd"))]
 fn freebsd_nop() {

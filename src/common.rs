@@ -13,7 +13,7 @@ pub enum CapErrType {
     Limit,
     Merge,
     Remove,
-    Set
+    Set,
 }
 
 #[derive(Debug)]
@@ -25,7 +25,7 @@ pub enum CapErr {
     Limit(io::Error),
     Merge(io::Error),
     Remove(io::Error),
-    Set(io::Error)
+    Set(io::Error),
 }
 
 impl From<CapErrType> for CapErr {

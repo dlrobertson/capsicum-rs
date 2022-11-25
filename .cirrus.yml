@@ -30,6 +30,9 @@ task:
   lint_script:
     - . $HOME/.cargo/env
     - if [ "$VERSION" = "nightly" ]; then rustup component add --toolchain $VERSION clippy; cargo +$VERSION clippy --all-targets -- -D warnings; else true; fi
+  fmt_script:
+    - . $HOME/.cargo/env
+    - if [ "$VERSION" = "nightly" ]; then rustup component add --toolchain $VERSION rustfmt; cargo +$VERSION fmt --all -- --check; else true; fi
   doc_script:
     - . $HOME/.cargo/env
     - cargo +$VERSION doc --no-deps
