@@ -46,7 +46,6 @@
 ///
 /// assert!(ok_file.read_to_string(&mut s).is_ok());
 /// ```
-
 extern crate libc;
 
 mod common;
@@ -56,8 +55,8 @@ mod process;
 mod right;
 pub mod util;
 
-pub use common::{CapResult, CapErr, CapRights};
+pub use common::{CapErr, CapResult, CapRights};
 pub use fcntl::{Fcntl, FcntlRights, FcntlsBuilder};
 pub use ioctl::{IoctlRights, IoctlsBuilder};
-pub use process::{get_mode, enter, sandboxed};
-pub use right::{Right, FileRights, RightsBuilder};
+pub use process::{enter, get_mode, sandboxed};
+pub use right::{FileRights, Right, RightsBuilder};

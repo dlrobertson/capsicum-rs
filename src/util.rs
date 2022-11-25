@@ -2,13 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use libc::{mode_t, openat, c_uint, c_int};
-use std::io;
+use libc::{c_int, c_uint, mode_t, openat};
 use std::ffi::CString;
 use std::fs::File;
-use std::os::unix::io::{RawFd, AsRawFd, FromRawFd};
+use std::io;
+use std::os::unix::io::{AsRawFd, FromRawFd, RawFd};
 
-use common::{CapResult, CapErr, CapErrType};
+use common::{CapErr, CapErrType, CapResult};
 
 /// Directory with a set of capabilities.
 ///
@@ -45,16 +45,14 @@ pub struct Directory {
 impl Directory {
     pub fn new(path: &str) -> io::Result<Directory> {
         let file = File::open(path)?;
-        Ok(Directory {
-            file,
-        })
+        Ok(Directory { file })
     }
 
     pub fn open_file(&self, path: CString, flags: c_int, mode: Option<mode_t>) -> CapResult<File> {
         unsafe {
             let fd = match mode {
                 Some(mode) => openat(self.file.as_raw_fd(), path.as_ptr(), flags, mode as c_uint),
-                None => openat(self.file.as_raw_fd(), path.as_ptr(), 0)
+                None => openat(self.file.as_raw_fd(), path.as_ptr(), 0),
             };
             if fd < 0 {
                 Err(CapErr::from(CapErrType::Invalid))

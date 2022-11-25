@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
 #![cfg_attr(nightly, feature(panic_always_abort))]
 
 extern crate capsicum;
@@ -21,17 +20,16 @@ fn always_abort() {
 }
 
 mod base {
+    use super::*;
     use capsicum::{enter, sandboxed, CapRights};
-    use capsicum::{Right, FileRights, RightsBuilder};
-    use capsicum::{IoctlRights, IoctlsBuilder};
     use capsicum::{Fcntl, FcntlRights, FcntlsBuilder};
-    use nix::unistd::{ForkResult, fork};
-    use nix::sys::wait::{WaitStatus, waitpid};
+    use capsicum::{FileRights, Right, RightsBuilder};
+    use capsicum::{IoctlRights, IoctlsBuilder};
+    use nix::sys::wait::{waitpid, WaitStatus};
+    use nix::unistd::{fork, ForkResult};
     use std::fs;
     use std::io::{Read, Write};
-    use tempfile::{NamedTempFile, tempfile};
-    use super::*;
-
+    use tempfile::{tempfile, NamedTempFile};
 
     #[test]
     fn test_rights_right() {
@@ -41,12 +39,14 @@ mod base {
     #[test]
     fn test_rights_builer() {
         let mut builder = RightsBuilder::new(Right::Read);
-        builder.add(Right::Lookup).add(Right::AclSet)
-                                  .add(Right::AclSet)
-                                  .add(Right::AclGet)
-                                  .add(Right::Write)
-                                  .remove(Right::Lookup)
-                                  .remove(Right::AclGet);
+        builder
+            .add(Right::Lookup)
+            .add(Right::AclSet)
+            .add(Right::AclSet)
+            .add(Right::AclGet)
+            .add(Right::Write)
+            .remove(Right::Lookup)
+            .remove(Right::AclGet);
         assert_eq!(144115188076380163, builder.raw());
     }
 
@@ -56,7 +56,7 @@ mod base {
 
         let mut rights = match RightsBuilder::new(Right::Null).finalize() {
             Ok(rights) => rights,
-            _ => panic!("Error in creation of rights")
+            _ => panic!("Error in creation of rights"),
         };
 
         let to_merge = RightsBuilder::new(Right::Write).finalize().unwrap();
@@ -77,8 +77,9 @@ mod base {
 
         assert_eq!(rights, from_file);
 
-        let c_string = [0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20,
-                        0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00];
+        let c_string = [
+            0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00,
+        ];
 
         // Write should be limitted
         if file.write_all(&c_string).is_ok() {
@@ -111,8 +112,8 @@ mod base {
                     panic!("application is not properly sandboxed!");
                 }
                 unsafe { libc::_exit(0) };
-            },
-            ForkResult::Parent{child} => {
+            }
+            ForkResult::Parent { child } => {
                 let cstat = waitpid(child, None).unwrap();
                 assert!(matches!(cstat, WaitStatus::Exited(_, 0)));
             }
@@ -152,19 +153,20 @@ mod base {
 }
 
 mod util {
-    use std::ffi::CString;
-    use capsicum::{self, CapRights, Right, RightsBuilder};
-    use capsicum::util::Directory;
-    use nix::unistd::{ForkResult, fork};
-    use nix::sys::wait::{WaitStatus, waitpid};
     use super::*;
+    use capsicum::util::Directory;
+    use capsicum::{self, CapRights, Right, RightsBuilder};
+    use nix::sys::wait::{waitpid, WaitStatus};
+    use nix::unistd::{fork, ForkResult};
+    use std::ffi::CString;
 
     #[test]
     fn test_basic_dir() {
         let dir = Directory::new("./src").unwrap();
         let rights = RightsBuilder::new(Right::Read)
             .add(Right::Lookup)
-            .finalize().unwrap();
+            .finalize()
+            .unwrap();
         rights.limit(&dir).unwrap();
         let path = CString::new("lib.rs").unwrap();
         match unsafe { fork() }.unwrap() {
@@ -173,8 +175,8 @@ mod util {
                 capsicum::enter().unwrap();
                 dir.open_file(path, 0, None).unwrap();
                 unsafe { libc::_exit(0) };
-            },
-            ForkResult::Parent{child} => {
+            }
+            ForkResult::Parent { child } => {
                 let cstat = waitpid(child, None).unwrap();
                 assert!(matches!(cstat, WaitStatus::Exited(_, 0)));
             }
