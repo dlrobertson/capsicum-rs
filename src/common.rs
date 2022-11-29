@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::ffi;
 use std::io;
 use std::os::unix::io::AsRawFd;
 
@@ -24,6 +25,7 @@ pub enum CapErr {
     Invalid(io::Error),
     Limit(io::Error),
     Merge(io::Error),
+    Nul(ffi::NulError),
     Remove(io::Error),
     Set(io::Error),
 }

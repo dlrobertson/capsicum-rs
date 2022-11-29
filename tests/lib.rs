@@ -158,7 +158,6 @@ mod util {
     use capsicum::{self, CapRights, Right, RightsBuilder};
     use nix::sys::wait::{waitpid, WaitStatus};
     use nix::unistd::{fork, ForkResult};
-    use std::ffi::CString;
 
     #[test]
     fn test_basic_dir() {
@@ -168,12 +167,11 @@ mod util {
             .finalize()
             .unwrap();
         rights.limit(&dir).unwrap();
-        let path = CString::new("lib.rs").unwrap();
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
                 always_abort();
                 capsicum::enter().unwrap();
-                dir.open_file(path, 0, None).unwrap();
+                let _ = dir.open_file("lib.rs", 0, None).unwrap();
                 unsafe { libc::_exit(0) };
             }
             ForkResult::Parent { child } => {

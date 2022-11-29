@@ -6,7 +6,11 @@ use libc::{c_int, c_uint, mode_t, openat};
 use std::ffi::CString;
 use std::fs::File;
 use std::io;
-use std::os::unix::io::{AsRawFd, FromRawFd, RawFd};
+use std::os::unix::{
+    ffi::OsStrExt,
+    io::{AsRawFd, FromRawFd, RawFd},
+};
+use std::path::Path;
 
 use common::{CapErr, CapErrType, CapResult};
 
@@ -15,7 +19,6 @@ use common::{CapErr, CapErrType, CapResult};
 /// # Examples
 ///
 /// ```
-/// use std::ffi::CString;
 /// use capsicum::{self, CapRights, Right, RightsBuilder};
 /// use capsicum::util::Directory;
 ///
@@ -35,24 +38,29 @@ use common::{CapErr, CapErrType, CapResult};
 ///
 /// // Since we have "Lookup" capabilities we can open a file
 /// // within the ./src directory
-/// let path = CString::new("lib.rs").unwrap();
-/// let fd = dir.open_file(path, 0, None).unwrap();
+/// let fd = dir.open_file("lib.rs", 0, None).unwrap();
 /// ```
 pub struct Directory {
     file: File,
 }
 
 impl Directory {
-    pub fn new(path: &str) -> io::Result<Directory> {
-        let file = File::open(path)?;
+    pub fn new<P: AsRef<Path>>(path: P) -> io::Result<Directory> {
+        let file = File::open(path.as_ref())?;
         Ok(Directory { file })
     }
 
-    pub fn open_file(&self, path: CString, flags: c_int, mode: Option<mode_t>) -> CapResult<File> {
+    pub fn open_file<P: AsRef<Path> + ?Sized>(
+        &self,
+        path: &P,
+        flags: c_int,
+        mode: Option<mode_t>,
+    ) -> CapResult<File> {
+        let p = CString::new(path.as_ref().as_os_str().as_bytes()).map_err(CapErr::Nul)?;
         unsafe {
             let fd = match mode {
-                Some(mode) => openat(self.file.as_raw_fd(), path.as_ptr(), flags, mode as c_uint),
-                None => openat(self.file.as_raw_fd(), path.as_ptr(), 0),
+                Some(mode) => openat(self.file.as_raw_fd(), p.as_ptr(), flags, mode as c_uint),
+                None => openat(self.file.as_raw_fd(), p.as_ptr(), 0),
             };
             if fd < 0 {
                 Err(CapErr::from(CapErrType::Invalid))
