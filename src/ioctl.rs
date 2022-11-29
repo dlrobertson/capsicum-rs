@@ -34,7 +34,7 @@ impl IoctlsBuilder {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct IoctlRights(Vec<u64>);
 
 impl IoctlRights {
@@ -72,12 +72,6 @@ impl CapRights for IoctlRights {
                 Ok(())
             }
         }
-    }
-}
-
-impl PartialEq for IoctlRights {
-    fn eq(&self, other: &IoctlRights) -> bool {
-        self.0 == other.0
     }
 }
 

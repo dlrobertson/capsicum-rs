@@ -5,7 +5,7 @@
 use std::io;
 
 pub fn enter() -> io::Result<()> {
-    if unsafe { cap_enter() } < 0 {
+    if unsafe { libc::cap_enter() } < 0 {
         Err(io::Error::last_os_error())
     } else {
         Ok(())
@@ -19,7 +19,7 @@ pub fn sandboxed() -> bool {
 pub fn get_mode() -> io::Result<usize> {
     let mut mode = 0;
     unsafe {
-        if cap_getmode(&mut mode) != 0 {
+        if libc::cap_getmode(&mut mode) != 0 {
             return Err(io::Error::last_os_error());
         }
     }
@@ -27,7 +27,5 @@ pub fn get_mode() -> io::Result<usize> {
 }
 
 extern "C" {
-    fn cap_enter() -> i32;
     fn cap_sandboxed() -> bool;
-    fn cap_getmode(modep: *mut u32) -> i32;
 }

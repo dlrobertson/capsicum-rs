@@ -7,7 +7,9 @@
 #![allow(non_camel_case_types)]
 
 use common::{CapErr, CapErrType, CapResult, CapRights};
+use libc::cap_rights_t;
 use std::io;
+use std::mem;
 use std::ops::BitAnd;
 use std::os::raw::c_char;
 use std::os::unix::io::{AsRawFd, RawFd};
@@ -165,16 +167,14 @@ impl RightsBuilder {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct FileRights(cap_rights_t);
 
 impl FileRights {
     pub fn new(raw_rights: u64) -> CapResult<FileRights> {
         unsafe {
-            let mut empty_rights = cap_rights_t {
-                cr_rights: [0; RIGHTS_VERSION as usize + 2],
-            };
-            let rights_ptr = __cap_rights_init(
+            let mut empty_rights = unsafe { mem::zeroed() };
+            let rights_ptr = libc::__cap_rights_init(
                 RIGHTS_VERSION,
                 &mut empty_rights as *mut cap_rights_t,
                 raw_rights,
@@ -195,9 +195,7 @@ impl FileRights {
 
     pub fn from_file<T: AsRawFd>(fd: &T) -> CapResult<FileRights> {
         unsafe {
-            let mut empty_rights = cap_rights_t {
-                cr_rights: [0; RIGHTS_VERSION as usize + 2],
-            };
+            let mut empty_rights = unsafe { mem::zeroed() };
             let res = __cap_rights_get(
                 RIGHTS_VERSION,
                 fd.as_raw_fd(),
@@ -217,20 +215,22 @@ impl FileRights {
     }
 
     pub fn contains(&self, other: &FileRights) -> bool {
-        unsafe { cap_rights_contains(&self.0, &other.0) }
+        unsafe { libc::cap_rights_contains(&self.0, &other.0) }
     }
 
     pub fn is_set(&self, raw_rights: Right) -> bool {
-        unsafe { __cap_rights_is_set(&self.0 as *const cap_rights_t, raw_rights as u64, 0u64) }
+        unsafe {
+            libc::__cap_rights_is_set(&self.0 as *const cap_rights_t, raw_rights as u64, 0u64)
+        }
     }
 
     pub fn is_valid(&self) -> bool {
-        unsafe { cap_rights_is_valid(&self.0) }
+        unsafe { libc::cap_rights_is_valid(&self.0) }
     }
 
     pub fn merge(&mut self, other: &FileRights) -> CapResult<()> {
         unsafe {
-            let result = cap_rights_merge(&mut self.0 as *mut cap_rights_t, &other.0);
+            let result = libc::cap_rights_merge(&mut self.0 as *mut cap_rights_t, &other.0);
             if result.is_null() {
                 Err(CapErr::from(CapErrType::Merge))
             } else {
@@ -241,7 +241,7 @@ impl FileRights {
 
     pub fn remove(&mut self, other: &FileRights) -> CapResult<()> {
         unsafe {
-            let result = cap_rights_remove(&mut self.0 as *mut cap_rights_t, &other.0);
+            let result = libc::cap_rights_remove(&mut self.0 as *mut cap_rights_t, &other.0);
             if result.is_null() {
                 Err(CapErr::from(CapErrType::Remove))
             } else {
@@ -253,7 +253,7 @@ impl FileRights {
     pub fn set(&mut self, raw_rights: Right) -> CapResult<()> {
         unsafe {
             let result =
-                __cap_rights_set(&mut self.0 as *mut cap_rights_t, raw_rights as u64, 0u64);
+                libc::__cap_rights_set(&mut self.0 as *mut cap_rights_t, raw_rights as u64, 0u64);
             if result.is_null() {
                 Err(CapErr::from(CapErrType::Set))
             } else {
@@ -265,7 +265,7 @@ impl FileRights {
     pub fn clear(&mut self, raw_rights: Right) -> CapResult<()> {
         unsafe {
             let result =
-                __cap_rights_clear(&mut self.0 as *mut cap_rights_t, raw_rights as u64, 0u64);
+                libc::__cap_rights_clear(&mut self.0 as *mut cap_rights_t, raw_rights as u64, 0u64);
             if result.is_null() {
                 Err(CapErr::from(CapErrType::Clear))
             } else {
@@ -278,7 +278,7 @@ impl FileRights {
 impl CapRights for FileRights {
     fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
         unsafe {
-            let res = cap_rights_limit(fd.as_raw_fd(), &self.0 as *const cap_rights_t);
+            let res = libc::cap_rights_limit(fd.as_raw_fd(), &self.0 as *const cap_rights_t);
             if res < 0 {
                 Err(CapErr::from(CapErrType::Limit))
             } else {
@@ -288,41 +288,7 @@ impl CapRights for FileRights {
     }
 }
 
-impl PartialEq for FileRights {
-    fn eq(&self, other: &FileRights) -> bool {
-        self.0.cr_rights == other.0.cr_rights
-    }
-}
-
-#[repr(C)]
-#[derive(Debug, Default)]
-pub struct cap_rights_t {
-    cr_rights: [u64; RIGHTS_VERSION as usize + 2],
-}
-
 extern "C" {
-    fn cap_rights_is_valid(rights: *const cap_rights_t) -> bool;
-    fn cap_rights_merge(dst: *mut cap_rights_t, src: *const cap_rights_t) -> *mut cap_rights_t;
-    fn cap_rights_remove(dst: *mut cap_rights_t, src: *const cap_rights_t) -> *mut cap_rights_t;
-    fn cap_rights_contains(big: *const cap_rights_t, little: *const cap_rights_t) -> bool;
-    fn cap_rights_limit(fd: RawFd, rights: *const cap_rights_t) -> RawFd;
-    fn __cap_rights_init(
-        version: i32,
-        rights: *mut cap_rights_t,
-        raw_rights: u64,
-        sentinel: u64,
-    ) -> *mut cap_rights_t;
-    fn __cap_rights_set(
-        rights: *mut cap_rights_t,
-        raw_rights: u64,
-        sentinel: u64,
-    ) -> *mut cap_rights_t;
-    fn __cap_rights_clear(
-        rights: *mut cap_rights_t,
-        raw_rights: u64,
-        sentinel: u64,
-    ) -> *mut cap_rights_t;
-    fn __cap_rights_is_set(rights: *const cap_rights_t, raw_rights: u64, sentinel: u64) -> bool;
     fn __cap_rights_get(version: i32, fd: RawFd, rightsp: *mut cap_rights_t) -> RawFd;
 }
 
