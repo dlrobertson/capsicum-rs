@@ -4,28 +4,30 @@
 
 use std::{convert::TryFrom, os::unix::io::AsRawFd};
 
+use libc::u_long;
+
 use crate::common::{CapErr, CapErrType, CapResult, CapRights};
 
 const CAP_IOCTLS_ALL: isize = isize::max_value();
 
 #[derive(Debug, Default)]
-pub struct IoctlsBuilder(Vec<u64>);
+pub struct IoctlsBuilder(Vec<u_long>);
 
 impl IoctlsBuilder {
-    pub fn new(right: u64) -> IoctlsBuilder {
+    pub fn new(right: u_long) -> IoctlsBuilder {
         IoctlsBuilder(vec![right])
     }
 
-    pub fn add(&mut self, right: u64) -> &mut IoctlsBuilder {
+    pub fn add(&mut self, right: u_long) -> &mut IoctlsBuilder {
         self.0.push(right);
         self
     }
 
-    pub fn raw(&self) -> Vec<u64> {
+    pub fn raw(&self) -> Vec<u_long> {
         self.0.clone()
     }
 
-    pub fn remove(&mut self, right: u64) -> &mut IoctlsBuilder {
+    pub fn remove(&mut self, right: u_long) -> &mut IoctlsBuilder {
         self.0.retain(|&item| item != right);
         self
     }
@@ -36,10 +38,10 @@ impl IoctlsBuilder {
 }
 
 #[derive(Debug, Default, Eq, PartialEq)]
-pub struct IoctlRights(Vec<u64>);
+pub struct IoctlRights(Vec<u_long>);
 
 impl IoctlRights {
-    pub fn new(rights: Vec<u64>) -> IoctlRights {
+    pub fn new(rights: Vec<u_long>) -> IoctlRights {
         IoctlRights(rights)
     }
 
