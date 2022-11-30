@@ -41,7 +41,7 @@ impl FcntlsBuilder {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct FcntlRights(u32);
 
 impl FcntlRights {
@@ -71,12 +71,6 @@ impl CapRights for FcntlRights {
                 Ok(())
             }
         }
-    }
-}
-
-impl PartialEq for FcntlRights {
-    fn eq(&self, other: &FcntlRights) -> bool {
-        self.0 == other.0
     }
 }
 
