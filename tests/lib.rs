@@ -139,16 +139,15 @@ mod base {
             .finalize();
         ioctls.limit(&file).unwrap();
         let limited = IoctlRights::from_file(&file, 10).unwrap();
-        assert_eq!(ioctls, limited);
+        assert_eq!(Some(ioctls), limited);
     }
 
     // https://github.com/dlrobertson/capsicum-rs/issues/5
     #[test]
-    #[ignore = "IoctlRights cannot respresent unlimited"]
     fn test_ioctl_unlimited() {
         let file = tempfile().unwrap();
-        let _limited = IoctlRights::from_file(&file, 10).unwrap();
-        // TODO: what should limited be?
+        let limited = IoctlRights::from_file(&file, 10).unwrap();
+        assert!(limited.is_none());
     }
 
     #[test]
