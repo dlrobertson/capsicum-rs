@@ -158,10 +158,15 @@ mod util {
     use capsicum::{self, CapRights, Right, RightsBuilder};
     use nix::sys::wait::{waitpid, WaitStatus};
     use nix::unistd::{fork, ForkResult};
+    use std::fs;
+    use tempfile::tempdir;
 
     #[test]
     fn test_basic_dir() {
-        let dir = Directory::new("./src").unwrap();
+        let tdir = tempdir().unwrap();
+        let dir = Directory::new(tdir.path()).unwrap();
+        let fname = "foo";
+        fs::File::create(tdir.path().join(fname)).unwrap();
         let rights = RightsBuilder::new(Right::Read)
             .add(Right::Lookup)
             .finalize()
@@ -171,7 +176,7 @@ mod util {
             ForkResult::Child => {
                 always_abort();
                 capsicum::enter().unwrap();
-                let _ = dir.open_file("lib.rs", 0, None).unwrap();
+                let _ = dir.open_file(fname, 0, None).unwrap();
                 unsafe { libc::_exit(0) };
             }
             ForkResult::Parent { child } => {
