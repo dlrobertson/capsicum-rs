@@ -1,5 +1,3 @@
-extern crate version_check as rustc;
-
 #[cfg(target_os = "freebsd")]
 fn freebsd_nop() {}
 
@@ -10,7 +8,7 @@ fn freebsd_nop() {
 
 fn main() {
     freebsd_nop();
-    if rustc::is_feature_flaggable() == Some(true) {
+    if version_check::is_feature_flaggable() == Some(true) {
         println!("cargo:rustc-cfg=nightly")
     }
 }

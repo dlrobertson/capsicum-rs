@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use common::{CapErr, CapErrType, CapResult, CapRights};
+use crate::common::{CapErr, CapErrType, CapResult, CapRights};
 use std::os::unix::io::AsRawFd;
 
 #[repr(u32)]

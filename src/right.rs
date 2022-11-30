@@ -6,7 +6,7 @@
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 
-use common::{CapErr, CapErrType, CapResult, CapRights};
+use crate::common::{CapErr, CapErrType, CapResult, CapRights};
 use libc::cap_rights_t;
 use std::io;
 use std::mem;

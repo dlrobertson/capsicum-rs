@@ -12,7 +12,7 @@ use std::os::unix::{
 };
 use std::path::Path;
 
-use common::{CapErr, CapErrType, CapResult};
+use crate::common::{CapErr, CapErrType, CapResult};
 
 /// Directory with a set of capabilities.
 ///

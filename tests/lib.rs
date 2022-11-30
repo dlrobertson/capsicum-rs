@@ -4,10 +4,6 @@
 
 #![cfg_attr(nightly, feature(panic_always_abort))]
 
-extern crate capsicum;
-extern crate nix;
-extern crate tempfile;
-
 /// Switch the panic handler to SIGABRT, since stack unwinding can't be safely
 /// done after a fork.
 #[cfg(nightly)]

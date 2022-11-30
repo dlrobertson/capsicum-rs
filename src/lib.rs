@@ -46,8 +46,6 @@
 ///
 /// assert!(ok_file.read_to_string(&mut s).is_ok());
 /// ```
-extern crate libc;
-
 mod common;
 mod fcntl;
 mod ioctl;
@@ -55,7 +53,7 @@ mod process;
 mod right;
 pub mod util;
 
-pub use common::{CapErr, CapResult, CapRights};
+pub use crate::common::{CapErr, CapResult, CapRights};
 pub use fcntl::{Fcntl, FcntlRights, FcntlsBuilder};
 pub use ioctl::{IoctlRights, IoctlsBuilder};
 pub use process::{enter, get_mode, sandboxed};
