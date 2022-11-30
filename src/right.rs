@@ -202,7 +202,7 @@ impl FileRights {
     pub fn from_file<T: AsRawFd>(fd: &T) -> CapResult<FileRights> {
         unsafe {
             let mut empty_rights = unsafe { mem::zeroed() };
-            let res = __cap_rights_get(
+            let res = libc::__cap_rights_get(
                 RIGHTS_VERSION,
                 fd.as_raw_fd(),
                 &mut empty_rights as *mut cap_rights_t,
@@ -292,10 +292,6 @@ impl CapRights for FileRights {
             }
         }
     }
-}
-
-extern "C" {
-    fn __cap_rights_get(version: i32, fd: RawFd, rightsp: *mut cap_rights_t) -> RawFd;
 }
 
 #[test]

@@ -19,7 +19,7 @@ targets = [
 ]
 
 [dependencies]
-libc = { version = "0.2.20", features = [ "extra_traits" ] }
+libc = { git = "https://github.com/rust-lang/libc.git", rev = "d6fe782", features = [ "extra_traits" ] }
 
 [build-dependencies]
 version_check = "0.9.4"

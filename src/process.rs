@@ -13,7 +13,7 @@ pub fn enter() -> io::Result<()> {
 }
 
 pub fn sandboxed() -> bool {
-    unsafe { cap_sandboxed() }
+    unsafe { libc::cap_sandboxed() }
 }
 
 pub fn get_mode() -> io::Result<usize> {
@@ -24,8 +24,4 @@ pub fn get_mode() -> io::Result<usize> {
         }
     }
     Ok(mode as usize)
-}
-
-extern "C" {
-    fn cap_sandboxed() -> bool;
 }
