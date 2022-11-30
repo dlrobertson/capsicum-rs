@@ -2,15 +2,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use libc::{c_int, c_uint, mode_t, openat};
-use std::ffi::CString;
-use std::fs::File;
-use std::io;
-use std::os::unix::{
-    ffi::OsStrExt,
-    io::{AsRawFd, FromRawFd, RawFd},
+use std::{
+    ffi::CString,
+    fs::File,
+    io,
+    os::unix::{
+        ffi::OsStrExt,
+        io::{AsRawFd, FromRawFd, RawFd},
+    },
+    path::Path,
 };
-use std::path::Path;
+
+use libc::{c_int, c_uint, mode_t, openat};
 
 use crate::common::{CapErr, CapErrType, CapResult};
 

@@ -16,16 +16,31 @@ fn always_abort() {
 }
 
 mod base {
-    use super::*;
-    use capsicum::{enter, sandboxed, CapRights};
-    use capsicum::{Fcntl, FcntlRights, FcntlsBuilder};
-    use capsicum::{FileRights, Right, RightsBuilder};
-    use capsicum::{IoctlRights, IoctlsBuilder};
-    use nix::sys::wait::{waitpid, WaitStatus};
-    use nix::unistd::{fork, ForkResult};
-    use std::fs;
-    use std::io::{Read, Write};
+    use std::{
+        fs,
+        io::{Read, Write},
+    };
+
+    use capsicum::{
+        enter,
+        sandboxed,
+        CapRights,
+        Fcntl,
+        FcntlRights,
+        FcntlsBuilder,
+        FileRights,
+        IoctlRights,
+        IoctlsBuilder,
+        Right,
+        RightsBuilder,
+    };
+    use nix::{
+        sys::wait::{waitpid, WaitStatus},
+        unistd::{fork, ForkResult},
+    };
     use tempfile::{tempfile, NamedTempFile};
+
+    use super::*;
 
     #[test]
     fn test_rights_right() {
@@ -149,13 +164,16 @@ mod base {
 }
 
 mod util {
-    use super::*;
-    use capsicum::util::Directory;
-    use capsicum::{self, CapRights, Right, RightsBuilder};
-    use nix::sys::wait::{waitpid, WaitStatus};
-    use nix::unistd::{fork, ForkResult};
     use std::fs;
+
+    use capsicum::{self, util::Directory, CapRights, Right, RightsBuilder};
+    use nix::{
+        sys::wait::{waitpid, WaitStatus},
+        unistd::{fork, ForkResult},
+    };
     use tempfile::tempdir;
+
+    use super::*;
 
     #[test]
     fn test_basic_dir() {
