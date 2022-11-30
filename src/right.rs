@@ -6,13 +6,19 @@
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 
-use common::{CapErr, CapErrType, CapResult, CapRights};
+use std::{
+    io,
+    mem,
+    ops::BitAnd,
+    os::{
+        raw::c_char,
+        unix::io::{AsRawFd, RawFd},
+    },
+};
+
 use libc::cap_rights_t;
-use std::io;
-use std::mem;
-use std::ops::BitAnd;
-use std::os::raw::c_char;
-use std::os::unix::io::{AsRawFd, RawFd};
+
+use crate::common::{CapErr, CapErrType, CapResult, CapRights};
 
 pub const RIGHTS_VERSION: i32 = 0;
 
