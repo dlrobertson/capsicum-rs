@@ -62,33 +62,37 @@ impl IoctlsBuilder {
 /// [`ioctl`](https://www.freebsd.org/cgi/man.cgi?query=ioctl) in capability
 /// mode.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct IoctlRights(Vec<u_long>);
+pub enum IoctlRights {
+    #[default]
+    Unlimited,
+    Limited(Vec<u_long>),
+}
 
 impl IoctlRights {
     pub fn new(rights: Vec<u_long>) -> IoctlRights {
-        IoctlRights(rights)
+        IoctlRights::Limited(rights)
     }
 
     /// Retrieve the list of currently allowed ioctl commands from a file.
     ///
     /// # Returns
     ///
-    /// - `Ok(None)`:         All ioctl commands are allowed
-    /// - `Ok(Some([]))`:     No ioctl commands are allowed
-    /// - `Ok(Some([...]))`:  Only these ioctl commands are allowed.
+    /// - `Ok(IoctlRights::Unlimited)`:      All ioctl commands are allowed
+    /// - `Ok(IoctlRights::Limited([]))`:    No ioctl commands are allowed
+    /// - `Ok(IoctlRights::Limited([...]))`: Only these ioctl commands are allowed.
     /// - `Err(_)`:           Retrieving the list failed.
-    pub fn from_file<T: AsRawFd>(fd: &T, len: usize) -> CapResult<Option<IoctlRights>> {
+    pub fn from_file<T: AsRawFd>(fd: &T, len: usize) -> CapResult<IoctlRights> {
         let mut cmds = Vec::with_capacity(len);
         unsafe {
             let res = cap_ioctls_get(fd.as_raw_fd(), cmds.as_mut_ptr(), len);
             if res == CAP_IOCTLS_ALL {
-                Ok(None)
+                Ok(IoctlRights::Unlimited)
             } else if let Ok(rlen) = usize::try_from(res) {
                 if rlen > len {
                     panic!("cap_ioctls_get overflowed our buffer")
                 } else {
                     cmds.set_len(rlen);
-                    Ok(Some(IoctlRights(cmds)))
+                    Ok(IoctlRights::Limited(cmds))
                 }
             } else {
                 Err(CapErr::from(CapErrType::Get))
@@ -99,14 +103,15 @@ impl IoctlRights {
 
 impl CapRights for IoctlRights {
     fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
-        unsafe {
-            let len = self.0.len();
-            if cap_ioctls_limit(fd.as_raw_fd(), self.0.as_ptr(), len) < 0 {
-                Err(CapErr::from(CapErrType::Limit))
-            } else {
-                Ok(())
+        if let IoctlRights::Limited(v) = self {
+            let len = v.len();
+            unsafe {
+                if cap_ioctls_limit(fd.as_raw_fd(), v.as_ptr(), len) < 0 {
+                    return Err(CapErr::from(CapErrType::Limit));
+                }
             }
         }
+        Ok(())
     }
 }
 

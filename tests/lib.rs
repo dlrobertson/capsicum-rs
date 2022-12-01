@@ -139,7 +139,7 @@ mod base {
             .finalize();
         ioctls.limit(&file).unwrap();
         let limited = IoctlRights::from_file(&file, 10).unwrap();
-        assert_eq!(Some(ioctls), limited);
+        assert_eq!(ioctls, limited);
     }
 
     // https://github.com/dlrobertson/capsicum-rs/issues/5
@@ -147,7 +147,7 @@ mod base {
     fn test_ioctl_unlimited() {
         let file = tempfile().unwrap();
         let limited = IoctlRights::from_file(&file, 10).unwrap();
-        assert!(limited.is_none());
+        assert!(matches!(limited, IoctlRights::Unlimited));
     }
 
     #[test]
