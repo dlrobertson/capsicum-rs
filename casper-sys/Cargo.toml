@@ -1,0 +1,18 @@
+[package]
+name = "casper-sys"
+version = "0.1.0"
+edition = "2021"
+authors = ["Alan Somers <asomers@gmail.com>"]
+license = "MPL-2.0"
+repository = "https://github.com/dlrobertson/capsicum-rs"
+rust-version = "1.62"
+description = """
+FFI bindings for FreeBSD's libcasper
+"""
+keywords = ["sandbox", "FreeBSD", "capsicum"]
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libnv-sys = "0.1.5"
