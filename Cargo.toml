@@ -25,5 +25,5 @@ libc = { version = "0.2.20", features = [ "extra_traits" ] }
 version_check = "0.9.4"
 
 [dev-dependencies]
-nix = "0.25.0"
+nix = { version = "0.26.1", default_features = false, features = [ "ioctl", "process" ] }
 tempfile = "3.0"

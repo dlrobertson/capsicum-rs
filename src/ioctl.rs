@@ -10,6 +10,27 @@ use crate::common::{CapErr, CapErrType, CapResult, CapRights};
 
 const CAP_IOCTLS_ALL: isize = isize::max_value();
 
+/// Used to construct a new set of allowed ioctl commands.
+///
+/// # Example
+/// Using ioctl command codes from libc:
+/// ```
+/// # use capsicum::IoctlsBuilder;
+/// let builder = IoctlsBuilder::new(libc::TIOCGETD);
+/// let rights = builder.finalize();
+/// ```
+/// Declaring ioctl command codes with Nix, for ioctls not present in libc:
+/// ```
+/// use std::mem;
+/// #[macro_use(request_code_read)]
+/// extern crate nix;
+/// # use capsicum::IoctlsBuilder;
+/// const TIOCGETD: libc::u_long = request_code_read!(b't', 26, mem::size_of::<libc::c_int>());
+///
+/// fn main() {
+///     let builder = IoctlsBuilder::new(TIOCGETD);
+///     let rights = builder.finalize();
+/// }
 #[derive(Debug, Default)]
 pub struct IoctlsBuilder(Vec<u_long>);
 
@@ -37,26 +58,41 @@ impl IoctlsBuilder {
     }
 }
 
-#[derive(Debug, Default, Eq, PartialEq)]
-pub struct IoctlRights(Vec<u_long>);
+/// A set of commands  commands that can be allowed with
+/// [`ioctl`](https://www.freebsd.org/cgi/man.cgi?query=ioctl) in capability
+/// mode.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub enum IoctlRights {
+    #[default]
+    Unlimited,
+    Limited(Vec<u_long>),
+}
 
 impl IoctlRights {
     pub fn new(rights: Vec<u_long>) -> IoctlRights {
-        IoctlRights(rights)
+        IoctlRights::Limited(rights)
     }
 
+    /// Retrieve the list of currently allowed ioctl commands from a file.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(IoctlRights::Unlimited)`:      All ioctl commands are allowed
+    /// - `Ok(IoctlRights::Limited([]))`:    No ioctl commands are allowed
+    /// - `Ok(IoctlRights::Limited([...]))`: Only these ioctl commands are allowed.
+    /// - `Err(_)`:           Retrieving the list failed.
     pub fn from_file<T: AsRawFd>(fd: &T, len: usize) -> CapResult<IoctlRights> {
+        let mut cmds = Vec::with_capacity(len);
         unsafe {
-            let mut cmds = Vec::with_capacity(len);
             let res = cap_ioctls_get(fd.as_raw_fd(), cmds.as_mut_ptr(), len);
             if res == CAP_IOCTLS_ALL {
-                todo!()
+                Ok(IoctlRights::Unlimited)
             } else if let Ok(rlen) = usize::try_from(res) {
                 if rlen > len {
                     panic!("cap_ioctls_get overflowed our buffer")
                 } else {
                     cmds.set_len(rlen);
-                    Ok(IoctlRights(cmds))
+                    Ok(IoctlRights::Limited(cmds))
                 }
             } else {
                 Err(CapErr::from(CapErrType::Get))
@@ -67,14 +103,15 @@ impl IoctlRights {
 
 impl CapRights for IoctlRights {
     fn limit<T: AsRawFd>(&self, fd: &T) -> CapResult<()> {
-        unsafe {
-            let len = self.0.len();
-            if cap_ioctls_limit(fd.as_raw_fd(), self.0.as_ptr(), len) < 0 {
-                Err(CapErr::from(CapErrType::Limit))
-            } else {
-                Ok(())
+        if let IoctlRights::Limited(v) = self {
+            let len = v.len();
+            unsafe {
+                if cap_ioctls_limit(fd.as_raw_fd(), v.as_ptr(), len) < 0 {
+                    return Err(CapErr::from(CapErrType::Limit));
+                }
             }
         }
+        Ok(())
     }
 }
 
