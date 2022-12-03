@@ -84,7 +84,7 @@ impl IoctlRights {
     pub fn from_file<T: AsRawFd>(fd: &T, len: usize) -> CapResult<IoctlRights> {
         let mut cmds = Vec::with_capacity(len);
         unsafe {
-            let res = cap_ioctls_get(fd.as_raw_fd(), cmds.as_mut_ptr(), len);
+            let res = libc::cap_ioctls_get(fd.as_raw_fd(), cmds.as_mut_ptr(), len);
             if res == CAP_IOCTLS_ALL {
                 Ok(IoctlRights::Unlimited)
             } else if let Ok(rlen) = usize::try_from(res) {
@@ -106,16 +106,11 @@ impl CapRights for IoctlRights {
         if let IoctlRights::Limited(v) = self {
             let len = v.len();
             unsafe {
-                if cap_ioctls_limit(fd.as_raw_fd(), v.as_ptr(), len) < 0 {
+                if libc::cap_ioctls_limit(fd.as_raw_fd(), v.as_ptr(), len) < 0 {
                     return Err(CapErr::from(CapErrType::Limit));
                 }
             }
         }
         Ok(())
     }
-}
-
-extern "C" {
-    fn cap_ioctls_limit(fd: i32, cmds: *const libc::u_long, ncmds: usize) -> i32;
-    fn cap_ioctls_get(fd: i32, cmds: *mut libc::u_long, maxcmds: usize) -> isize;
 }
