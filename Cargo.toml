@@ -12,6 +12,7 @@ Simple intuitive Rust bindings for the FreeBSD capsicum framework
 build = "build.rs"
 readme = "README.md"
 keywords = ["sandbox", "FreeBSD", "capsicum"]
+categories = ["os::freebsd-apis"]
 
 include = ["src/**/*", "test/**/*", "build.rs", "LICENSE", "README.md", "CHANGELOG.md"]
 
