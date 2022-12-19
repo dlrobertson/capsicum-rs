@@ -5,7 +5,7 @@
 use std::{
     ffi::CString,
     fs::File,
-    io,
+    io::{self, ErrorKind},
     os::unix::{
         ffi::OsStrExt,
         io::{AsRawFd, FromRawFd, RawFd},
@@ -14,8 +14,6 @@ use std::{
 };
 
 use libc::{c_int, c_uint, mode_t, openat};
-
-use crate::common::{CapErr, CapErrType, CapResult};
 
 /// Directory with a set of capabilities.
 ///
@@ -31,7 +29,7 @@ use crate::common::{CapErr, CapErrType, CapResult};
 /// // Create the set of capabilities
 /// let rights = RightsBuilder::new(Right::Read)
 ///     .add(Right::Lookup)
-///     .finalize().unwrap();
+///     .finalize();
 ///
 /// // Limit the capabilities
 /// rights.limit(&dir).unwrap();
@@ -58,15 +56,16 @@ impl Directory {
         path: &P,
         flags: c_int,
         mode: Option<mode_t>,
-    ) -> CapResult<File> {
-        let p = CString::new(path.as_ref().as_os_str().as_bytes()).map_err(CapErr::Nul)?;
+    ) -> io::Result<File> {
+        let p = CString::new(path.as_ref().as_os_str().as_bytes())
+            .or(Err(io::Error::new(ErrorKind::Other, "not a valid C path")))?;
         unsafe {
             let fd = match mode {
                 Some(mode) => openat(self.file.as_raw_fd(), p.as_ptr(), flags, mode as c_uint),
                 None => openat(self.file.as_raw_fd(), p.as_ptr(), 0),
             };
             if fd < 0 {
-                Err(CapErr::from(CapErrType::Invalid))
+                Err(io::Error::last_os_error())
             } else {
                 Ok(File::from_raw_fd(fd))
             }

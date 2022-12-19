@@ -65,12 +65,9 @@ mod base {
     fn test_rights() {
         let mut file = NamedTempFile::new().unwrap();
 
-        let mut rights = match RightsBuilder::new(Right::Null).finalize() {
-            Ok(rights) => rights,
-            _ => panic!("Error in creation of rights"),
-        };
+        let mut rights = RightsBuilder::new(Right::Null).finalize();
 
-        let to_merge = RightsBuilder::new(Right::Write).finalize().unwrap();
+        let to_merge = RightsBuilder::new(Right::Write).finalize();
 
         rights.merge(&to_merge).unwrap();
 
@@ -165,7 +162,7 @@ mod base {
 mod util {
     use std::fs;
 
-    use capsicum::{self, util::Directory, CapErr, CapRights, Right, RightsBuilder};
+    use capsicum::{self, util::Directory, CapRights, Right, RightsBuilder};
     use nix::{
         sys::wait::{waitpid, WaitStatus},
         unistd::{fork, ForkResult},
@@ -183,8 +180,7 @@ mod util {
         fs::File::create(tdir.path().join(fname)).unwrap();
         let rights = RightsBuilder::new(Right::Read)
             .add(Right::Lookup)
-            .finalize()
-            .unwrap();
+            .finalize();
         rights.limit(&dir).unwrap();
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
@@ -207,7 +203,7 @@ mod util {
         let dir = Directory::new(tdir.path()).unwrap();
         let fname = "foo";
         fs::File::create(tdir.path().join(fname)).unwrap();
-        let rights = RightsBuilder::new(Right::Read).finalize().unwrap();
+        let rights = RightsBuilder::new(Right::Read).finalize();
         rights.limit(&dir).unwrap();
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
@@ -216,7 +212,7 @@ mod util {
                 let e = dir.open_file(fname, 0, None).unwrap_err();
                 // The OS should return ENOTCAPABLE, but std::io::ErrorKind
                 // doesn't have a kind for that.
-                if matches!(e, CapErr::Invalid(_)) {
+                if e.raw_os_error() == Some(libc::ENOTCAPABLE) {
                     unsafe { libc::_exit(0) }
                 } else {
                     unsafe { libc::_exit(1) }
