@@ -40,7 +40,7 @@
 ///
 /// builder.add(Right::Read);
 ///
-/// let rights = builder.finalize().unwrap();
+/// let rights = builder.finalize();
 ///
 /// rights.limit(&ok_file).unwrap();
 ///
@@ -58,4 +58,4 @@ pub use ioctl::{IoctlRights, IoctlsBuilder};
 pub use process::{enter, get_mode, sandboxed};
 pub use right::{FileRights, Right, RightsBuilder};
 
-pub use crate::common::{CapErr, CapResult, CapRights};
+pub use crate::common::CapRights;
