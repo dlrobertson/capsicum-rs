@@ -4,6 +4,9 @@
 
 use std::io;
 
+/// Actually enter capability mode.
+///
+/// After this point the process will no longer be allowed to access global namespaces.
 pub fn enter() -> io::Result<()> {
     if unsafe { libc::cap_enter() } < 0 {
         Err(io::Error::last_os_error())
@@ -12,10 +15,16 @@ pub fn enter() -> io::Result<()> {
     }
 }
 
+/// Returns true if the process is in a capability mode.
 pub fn sandboxed() -> bool {
     unsafe { libc::cap_sandboxed() }
 }
 
+/// Returns true if the process is in a capability mode.
+///
+/// # Errors
+///
+/// * `ENOSYS` - The kernel was compiled without capability support.
 pub fn get_mode() -> io::Result<usize> {
     let mut mode = 0;
     unsafe {

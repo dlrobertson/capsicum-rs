@@ -5,5 +5,9 @@
 use std::{io, os::unix::io::AsRawFd};
 
 pub trait CapRights: Sized {
+    /// Reduce the process's allowed rights to a file descriptor.
+    ///
+    /// When a file descriptor is first created, it is assigned all possible capability rights.
+    /// Those rights may be reduced (but never expanded), by this method.
     fn limit<T: AsRawFd>(&self, fd: &T) -> io::Result<()>;
 }
