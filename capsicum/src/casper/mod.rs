@@ -14,7 +14,7 @@
 //!
 //! # See Also
 //! * [libcasper(3)](https://www.freebsd.org/cgi/man.cgi?query=libcasper)
-use std::{ffi::CStr, io};
+use std::{ffi::CStr, io, ptr};
 
 use const_cstr::ConstCStr;
 // Reexport these symbols, consumer crates don't need to directly depend on the
@@ -63,22 +63,22 @@ impl From<ServiceRegisterFlags> for u64 {
 // by cap_init, and must be freed with cap_close.
 #[derive(Debug)]
 #[doc(hidden)]
-pub struct CapChannel(*mut casper_sys::cap_channel_t);
+pub struct CapChannel(ptr::NonNull<casper_sys::cap_channel_t>);
 
 impl CapChannel {
     pub fn as_mut_ptr(&mut self) -> *mut casper_sys::cap_channel_t {
-        self.0
+        self.0.as_ptr()
     }
 
     pub fn as_ptr(&self) -> *const casper_sys::cap_channel_t {
-        self.0
+        self.0.as_ptr() as *const _
     }
 }
 
 impl Drop for CapChannel {
     fn drop(&mut self) {
         // always safe
-        unsafe { casper_sys::cap_close(self.0) }
+        unsafe { casper_sys::cap_close(self.0.as_ptr()) }
     }
 }
 
@@ -100,34 +100,30 @@ impl Casper {
     pub unsafe fn new() -> io::Result<Self> {
         // cap_init is always safe;
         let chan = unsafe { casper_sys::cap_init() };
-        if chan.is_null() {
-            Err(io::Error::last_os_error())
-        } else {
-            Ok(Casper(CapChannel(chan)))
-        }
+        ptr::NonNull::new(chan)
+            .map(CapChannel)
+            .map(Casper)
+            .ok_or(io::Error::last_os_error())
     }
 
     /// Open a connection to the named Casper service.  Should not be used
     /// directly except by [`service_connection!`].
     #[doc(hidden)]
     pub fn service_open(&self, name: &CStr) -> io::Result<CapChannel> {
-        let chan = unsafe { casper_sys::cap_service_open(self.0 .0, name.as_ptr()) };
-        if chan.is_null() {
-            Err(io::Error::last_os_error())
-        } else {
-            Ok(CapChannel(chan))
-        }
+        let chan = unsafe { casper_sys::cap_service_open(self.0.as_ptr(), name.as_ptr()) };
+        ptr::NonNull::new(chan)
+            .map(CapChannel)
+            .ok_or(io::Error::last_os_error())
     }
 
     /// Clone the handle to the Casper process.
     pub fn try_clone(&self) -> io::Result<Self> {
         // Safe as long as self.0 is a valid channel, which we ensure
-        let chan2 = unsafe { casper_sys::cap_clone(self.0 .0) };
-        if chan2.is_null() {
-            Err(io::Error::last_os_error())
-        } else {
-            Ok(Casper(CapChannel(chan2)))
-        }
+        let chan2 = unsafe { casper_sys::cap_clone(self.0.as_ptr()) };
+        ptr::NonNull::new(chan2)
+            .map(CapChannel)
+            .map(Casper)
+            .ok_or(io::Error::last_os_error())
     }
 }
 
@@ -171,7 +167,7 @@ mod macros {
             $vis:vis $astruct:ident, $cname:expr, $meth:ident
         ) => {
             $(#[$attr])*
-            $vis struct $astruct(::capsicum::casper::CapChannel);
+            $vis struct $astruct($crate::casper::CapChannel);
             impl $astruct {
                 /// Retrieve the service's existing limits
                 fn limit_get(&mut self) -> ::std::io::Result<$crate::casper::NvList> {

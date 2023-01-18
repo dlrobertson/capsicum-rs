@@ -3,4 +3,3 @@ members = ["capsicum", "casper-sys"]
 
 [patch.crates-io]
 libnv-sys = { git = "https://github.com/Inner-Heaven/libnv-rs.git" , rev = "0e376a0" }
-libnv = { git = "https://github.com/Inner-Heaven/libnv-rs.git" , rev = "0e376a0" }
