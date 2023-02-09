@@ -73,6 +73,10 @@ impl CapChannel {
     pub fn as_ptr(&self) -> *const casper_sys::cap_channel_t {
         self.0.as_ptr() as *const _
     }
+
+    fn from_raw_ptr(chan: *mut casper_sys::cap_channel_t) -> Option<Self> {
+        ptr::NonNull::new(chan).map(Self)
+    }
 }
 
 impl Drop for CapChannel {
@@ -100,8 +104,7 @@ impl Casper {
     pub unsafe fn new() -> io::Result<Self> {
         // cap_init is always safe;
         let chan = unsafe { casper_sys::cap_init() };
-        ptr::NonNull::new(chan)
-            .map(CapChannel)
+        CapChannel::from_raw_ptr(chan)
             .map(Casper)
             .ok_or(io::Error::last_os_error())
     }
@@ -111,17 +114,14 @@ impl Casper {
     #[doc(hidden)]
     pub fn service_open(&self, name: &CStr) -> io::Result<CapChannel> {
         let chan = unsafe { casper_sys::cap_service_open(self.0.as_ptr(), name.as_ptr()) };
-        ptr::NonNull::new(chan)
-            .map(CapChannel)
-            .ok_or(io::Error::last_os_error())
+        CapChannel::from_raw_ptr(chan).ok_or(io::Error::last_os_error())
     }
 
     /// Clone the handle to the Casper process.
     pub fn try_clone(&self) -> io::Result<Self> {
         // Safe as long as self.0 is a valid channel, which we ensure
         let chan2 = unsafe { casper_sys::cap_clone(self.0.as_ptr()) };
-        ptr::NonNull::new(chan2)
-            .map(CapChannel)
+        CapChannel::from_raw_ptr(chan2)
             .map(Casper)
             .ok_or(io::Error::last_os_error())
     }

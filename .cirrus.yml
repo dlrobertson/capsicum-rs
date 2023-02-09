@@ -71,6 +71,7 @@ lint_task:
     folder: $HOME/.cargo/registry
   clippy_script:
     - . $HOME/.cargo/env
+    - cargo +$VERSION clippy --all-targets -- -D warnings
     - cargo +$VERSION clippy --all-targets --all-features -- -D warnings
   fmt_script:
     - . $HOME/.cargo/env
