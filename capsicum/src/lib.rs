@@ -45,6 +45,9 @@
 //!
 //! assert!(ok_file.read_to_string(&mut s).is_ok());
 //! ```
+#[cfg(feature = "casper")]
+#[cfg_attr(docsrs, doc(cfg(feature = "casper")))]
+pub mod casper;
 mod common;
 mod fcntl;
 mod ioctl;
