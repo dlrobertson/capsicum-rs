@@ -1,8 +1,8 @@
 [package]
 name = "capsicum"
 edition = "2021"
-version = "0.1.3"
-authors = ["Daniel Robertson <dan.robertson@anidata.org>"]
+version = "0.2.0"
+authors = ["Dan Robertson <dan@dlrobertson.com>"]
 license = "MPL-2.0"
 repository = "https://github.com/dlrobertson/capsicum-rs"
 rust-version = "1.62"
