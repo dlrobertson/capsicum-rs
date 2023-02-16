@@ -28,10 +28,11 @@ casper = [ "casper-sys", "libnv", "libnv-sys" ]
 [[example]]
 name = "getuid"
 required-features = ["casper"]
+path = "examples/getuid.rs"
 
 [dependencies]
 libc = { version = "0.2.138", features = [ "extra_traits" ] }
-casper-sys = { path = "../casper-sys", optional = true}
+casper-sys = { path = "../casper-sys", optional = true, version = "0.1.0" }
 libnv = { version = "0.4.1", default_features = false, features = [ "libnv" ], optional = true }
 libnv-sys = { version = "0.2.0", optional = true }
 const-cstr = "0.3.0"
