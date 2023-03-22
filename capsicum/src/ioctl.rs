@@ -44,6 +44,8 @@ impl IoctlsBuilder {
         self
     }
 
+    // Is this method really necessary?  If it is, I suggest renaming it to
+    // "into_raw", and also deriving Clone on the builder.
     pub fn raw(&self) -> Vec<u_long> {
         self.0.clone()
     }
@@ -58,17 +60,59 @@ impl IoctlsBuilder {
     }
 }
 
-/// A set of commands  commands that can be allowed with
-/// [`ioctl`](https://www.freebsd.org/cgi/man.cgi?query=ioctl) in capability
-/// mode.
+/// Used to reduce (but never expand) the ioctl commands that may be used on a
+/// file descriptor.
+///
+/// # See Also
+/// [`ioctl(2)`](https://www.freebsd.org/cgi/man.cgi?query=ioctl)
+/// [`cap_ioctls_limit(2)`](https://www.freebsd.org/cgi/man.cgi?query=cap_ioctls_limit)
+///
+/// # Example
+/// ```
+/// # use std::os::unix::io::AsRawFd;
+/// # use capsicum::{CapRights, IoctlsBuilder};
+/// # use tempfile::tempfile;
+/// use std::mem;
+/// use libc::{c_int, u_long};
+/// use nix::{ioctl_read, request_code_read};
+/// use nix::errno::Errno;
+/// use nix::sys::socket::{AddressFamily, SockType, SockFlag, socketpair};
+///
+/// const FIONREAD: u_long = request_code_read!(b'f', 127, mem::size_of::<libc::c_int>());
+/// ioctl_read!(fionread, b'f', 127, libc::c_int);
+/// ioctl_read!(fionwrite, b'f', 119, libc::c_int);
+///
+/// let (fd1, fd2) = socketpair(
+///     AddressFamily::Unix,
+///     SockType::Stream,
+///     None,
+///     SockFlag::empty()
+/// ).unwrap();
+/// let rights = IoctlsBuilder::new(FIONREAD)
+///     .finalize();
+///
+/// rights.limit(&fd1).unwrap();
+///
+/// capsicum::enter().unwrap();
+///
+/// let mut n: c_int = 0;
+/// unsafe{ fionread(fd1.as_raw_fd(), &mut n as *mut c_int) }.unwrap();
+///
+/// let e = unsafe{ fionwrite(fd1.as_raw_fd(), &mut n as *mut c_int) };
+/// assert_eq!(e, Err(Errno::ENOTCAPABLE));
+/// ```
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub enum IoctlRights {
+    /// All ioctl commands will be allowed.
     #[default]
     Unlimited,
+    /// Only the included ioctl commands will be allowed.
     Limited(Vec<u_long>),
 }
 
 impl IoctlRights {
+    // It's pretty hard to use this function correctly.  I suggest removing it
+    // from the public API, and forcing people to use IoctlsBuilder instead.
     pub fn new(rights: Vec<u_long>) -> IoctlRights {
         IoctlRights::Limited(rights)
     }

@@ -4,6 +4,7 @@
 
 use std::{io, os::unix::io::AsRawFd};
 
+/// A set of capabilities that may be restricted on file descriptors.
 pub trait CapRights: Sized {
     /// Reduce the process's allowed rights to a file descriptor.
     ///
