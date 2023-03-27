@@ -4,12 +4,12 @@
 
 //! ## Entering capability mode
 //!
-//! ```no_run
+//! ```
 //!  use capsicum::{enter, sandboxed};
 //!  use std::fs::File;
 //!  use std::io::Read;
 //!
-//!  let mut ok_file = File::open("/tmp/foo").unwrap();
+//!  let mut ok_file = File::open("/etc/passwd").unwrap();
 //!  let mut s = String::new();
 //!
 //!  enter().expect("enter failed!");
@@ -28,11 +28,11 @@
 //!
 //! ## Limit capability rights to files
 //!
-//! ```no_run
+//! ```
 //! use capsicum::{CapRights, Right, RightsBuilder};
 //! use std::fs::File;
 //! use std::io::Read;
-//! let mut ok_file = File::open("/tmp/foo").unwrap();
+//! let mut ok_file = File::open("/etc/passwd").unwrap();
 //! let mut s = String::new();
 //!
 //! let mut builder = RightsBuilder::new(Right::Seek);

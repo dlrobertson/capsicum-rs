@@ -17,6 +17,10 @@ use libc::{c_int, c_uint, mode_t, openat};
 
 /// Directory with a set of capabilities.
 ///
+/// A `Directory` is the entry point for file system operations in capability
+/// mode.  Typically, you will open a `Directory`, then enter capability mode,
+/// and then open other files relative to the `Directory`.
+///
 /// # Examples
 ///
 /// ```
@@ -46,11 +50,15 @@ pub struct Directory {
 }
 
 impl Directory {
+    /// Attempt to open a `Directory` from a standard `Path`.  Will fail in
+    /// capability mode.
     pub fn new<P: AsRef<Path>>(path: P) -> io::Result<Directory> {
         let file = File::open(path.as_ref())?;
         Ok(Directory { file })
     }
 
+    /// Open a regular file relative to an already-opened `Directory`.  This is
+    /// the normal way to open files in capability mode.
     pub fn open_file<P: AsRef<Path> + ?Sized>(
         &self,
         path: &P,

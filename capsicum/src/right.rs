@@ -34,8 +34,12 @@ macro_rules! right_or {
     }
 }
 
+/// Capsicum capability rights for file descriptors.
+///
+/// See [`rights(4)`](https://www.freebsd.org/cgi/man.cgi?query=rights) for details.
 #[repr(u64)]
 #[derive(Debug)]
+#[allow(missing_docs)] // Individual bits are documented via the external link.
 pub enum Right {
     Null = 0,
     Read = cap_right!(0, 0x1u64),
@@ -146,6 +150,15 @@ pub enum Right {
     Unused157 = cap_right!(1, 0x100000000000000u64),
 }
 
+/// Used to construct a new set of allowed file rights.
+///
+/// # Example
+/// ```
+/// # use capsicum::{Right, RightsBuilder};
+/// let rights = RightsBuilder::new(Right::Read)
+///     .add(Right::Fexecve)
+///     .finalize();
+/// ```
 #[derive(Debug, Default)]
 pub struct RightsBuilder(u64);
 
@@ -173,6 +186,32 @@ impl RightsBuilder {
     }
 }
 
+/// Used to reduce (but never expand) the capabilities on a file descriptor.
+///
+/// # See Also
+///
+/// [`cap_rights_limit(2)`](https://www.freebsd.org/cgi/man.cgi?query=cap_rights_limit).
+///
+/// # Example
+/// ```
+/// # use std::os::unix::io::AsRawFd;
+/// # use std::io::{self, Read, Write};
+/// # use capsicum::{CapRights, RightsBuilder, Right};
+/// # use tempfile::tempfile;
+/// let mut file = tempfile().unwrap();
+/// let rights = RightsBuilder::new(Right::Read)
+///     .finalize();
+///
+/// rights.limit(&file).unwrap();
+///
+/// capsicum::enter().unwrap();
+///
+/// let mut buf = vec![0u8; 80];
+/// file.read(&mut buf[..]).unwrap();
+///
+/// let e = file.write(&buf[..]).unwrap_err();
+/// assert_eq!(e.raw_os_error(), Some(libc::ENOTCAPABLE));
+/// ```
 #[derive(Debug, Eq, PartialEq)]
 pub struct FileRights(cap_rights_t);
 
