@@ -1,15 +1,15 @@
 //! A toy Casper service that provides `getuid()`.
 
-use std::io;
+use std::{ffi::CStr, io};
 
 use capsicum::casper::{self, Casper, NvError, NvFlag, NvList, ServiceRegisterFlags};
-use const_cstr::{const_cstr, ConstCStr};
+use cstr::cstr;
 use libc::uid_t;
 
 /// The Capser `uid` helper process.
 struct CapUid {}
 impl casper::Service for CapUid {
-    const SERVICE_NAME: ConstCStr = const_cstr!("getuid");
+    const SERVICE_NAME: &'static CStr = cstr!("getuid");
 
     fn cmd(
         cmd: &str,

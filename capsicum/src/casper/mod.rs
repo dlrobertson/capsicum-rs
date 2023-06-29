@@ -16,7 +16,6 @@
 //! * [libcasper(3)](https://www.freebsd.org/cgi/man.cgi?query=libcasper)
 use std::{ffi::CStr, io, ptr};
 
-use const_cstr::ConstCStr;
 // Reexport these symbols, consumer crates don't need to directly depend on the
 // libnv and libnv-sys crates.
 pub use libnv::{
@@ -145,18 +144,17 @@ mod macros {
     /// * `vis` - Visibility of the generated structure.
     /// * `astruct` - The name of the struct that accesses the service.
     /// * `cname` - The name that the service registers with Casper.  Must be a
-    ///            `&'static CStr`, or at least something with an `as_cstr()`
-    ///            method.
+    ///            `&'static CStr`.
     /// * `meth` - The name of the accessor that will be added to `Casper`.
     ///
     /// # Examples
     /// ```
     /// use capsicum::casper;
-    /// use const_cstr::const_cstr;
+    /// use cstr::cstr;
     ///
     /// casper::service_connection!(
     ///     pub CapGroupAgent,
-    ///     const_cstr!("system.grp"),
+    ///     cstr!("system.grp"),
     ///     group
     /// );
     /// ```
@@ -230,7 +228,7 @@ mod macros {
             }
             impl CasperExt for ::capsicum::casper::Casper {
                 fn $meth(&self) -> ::std::io::Result<$astruct> {
-                    self.service_open($cname.as_cstr())
+                    self.service_open($cname)
                         .map($astruct)
                 }
             }
@@ -253,15 +251,14 @@ mod macros {
     ///
     /// # Examples
     /// ```
-    /// # use std::io;
+    /// # use std::{ffi::CStr, io};
     /// # use libnv::libnv::NvList;
-    /// # use const_cstr::ConstCStr;
     /// use capsicum::casper;
-    /// use const_cstr::const_cstr;
+    /// use cstr::cstr;
     ///
     /// struct CapUid {}
     /// impl casper::Service for CapUid {
-    /// # const SERVICE_NAME: ConstCStr = const_cstr!("getuid");
+    /// # const SERVICE_NAME: &'static CStr = cstr!("getuid");
     /// # fn cmd(_: &str, _: Option<&NvList>, _: Option<&mut NvList>, _: &mut NvList) -> io::Result<()> {
     /// # unimplemented!()
     /// # }
@@ -290,7 +287,7 @@ mod macros {
             unsafe fn casper_service_init() {
                 use $crate::casper::Service;
                 $crate::casper::sys::service_register(
-                    $sstruct::SERVICE_NAME.as_cstr().as_ptr(),
+                    $sstruct::SERVICE_NAME.as_ptr(),
                     Some($sstruct::c_limit),
                     Some($sstruct::c_cmd),
                     $flags.into()
@@ -313,7 +310,7 @@ pub use macros::{service, service_connection};
 pub trait Service {
     /// A string that uniquely identifies the service.  Must not start with
     /// "system.".
-    const SERVICE_NAME: ConstCStr;
+    const SERVICE_NAME: &'static CStr;
 
     /// The service will receive this callback for any request from the main
     /// process.  It should mutate `nvout` to communicate with the parent
