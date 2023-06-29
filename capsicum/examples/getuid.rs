@@ -26,7 +26,7 @@ impl casper::Service for CapUid {
 
         // This C function is always safe
         let uid = unsafe { libc::getuid() };
-        nvout.insert_number("uid", uid).unwrap();
+        nvout.insert_number(cstr!("uid"), uid).unwrap();
         Ok(())
     }
 
@@ -47,9 +47,9 @@ impl CapAgent {
     // `getuid` works fine in capability mode, but it's a nice simple demo.
     pub fn uid(&mut self) -> io::Result<uid_t> {
         let mut invl = NvList::new(NvFlag::None).unwrap();
-        invl.insert_string("cmd", "getuid").unwrap();
+        invl.insert_string(cstr!("cmd"), cstr!("getuid")).unwrap();
         let onvl = self.xfer_nvlist(invl)?;
-        match onvl.get_number("uid") {
+        match onvl.get_number(cstr!("uid")) {
             Ok(Some(uid)) => Ok(uid as uid_t),
             Ok(None) => panic!("zygote did not return the expected value"),
             Err(NvError::NativeError(e)) => Err(io::Error::from_raw_os_error(e)),

@@ -5,7 +5,7 @@ version = "0.2.0"
 authors = ["Dan Robertson <dan@dlrobertson.com>"]
 license = "MPL-2.0"
 repository = "https://github.com/dlrobertson/capsicum-rs"
-rust-version = "1.62"
+rust-version = "1.69"
 description = """
 Simple intuitive Rust bindings for the FreeBSD capsicum framework
 """
