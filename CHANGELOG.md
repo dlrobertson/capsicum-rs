@@ -12,6 +12,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   crate can help.
   ([#49](https://github.com/dlrobertson/capsicum-rs/pull/49))
 
+- `capsicum::get_mode` now returns a `bool`.
+  ([#51](https://github.com/dlrobertson/capsicum-rs/pull/51))
+
 ### Fixed
 
 - Fixed cross-building the documentation.

@@ -25,12 +25,12 @@ pub fn sandboxed() -> bool {
 /// # Errors
 ///
 /// * `ENOSYS` - The kernel was compiled without capability support.
-pub fn get_mode() -> io::Result<usize> {
+pub fn get_mode() -> io::Result<bool> {
     let mut mode = 0;
     unsafe {
         if libc::cap_getmode(&mut mode) != 0 {
             return Err(io::Error::last_os_error());
         }
     }
-    Ok(mode as usize)
+    Ok(mode != 0)
 }
