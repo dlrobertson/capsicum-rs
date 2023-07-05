@@ -27,7 +27,7 @@ task:
     #image_family: freebsd-14-0-snap
     - name: FreeBSD 13 amd64 stable
       env:
-        VERSION: 1.62.0
+        VERSION: 1.69.0
       freebsd_instance:
         image: freebsd-13-2-release-amd64
     - name: FreeBSD 13 i686 nightly

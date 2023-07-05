@@ -211,7 +211,8 @@ mod macros {
                         // Safe because libcasper guarantees its validity, and
                         // we never access it directly after this.
                         let nvl = unsafe{ $crate::casper::NvList::from_ptr(r) };
-                        match nvl.get_number("error") {
+                        let key = ::std::ffi::CStr::from_bytes_until_nul(b"error\0").unwrap();
+                        match nvl.get_number(key) {
                             Ok(Some(0)) => Ok(nvl),
                             Ok(Some(e)) => Err(::std::io::Error::from_raw_os_error(e as i32)),
                             Ok(None) => panic!("zygote did not return error code"),
