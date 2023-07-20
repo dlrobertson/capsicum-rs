@@ -20,11 +20,9 @@ task:
     - name: FreeBSD 13 amd64 nightly
       freebsd_instance:
         image: freebsd-13-2-release-amd64
-    # Disable 14.0-CURRENT builds because the current google cloud image is
-    # broken.  https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=272354
-    #- name: FreeBSD 14 amd64 nightly
-    #freebsd_instance:
-    #image_family: freebsd-14-0-snap
+    - name: FreeBSD 14 amd64 nightly
+      freebsd_instance:
+        image_family: freebsd-14-0-snap
     - name: FreeBSD 13 amd64 stable
       env:
         VERSION: 1.69.0
