@@ -42,6 +42,6 @@ version_check = "0.9.4"
 
 [dev-dependencies]
 cstr = "0.2.11"
-nix = { version = "0.26.1", default_features = false, features = [ "fs", "ioctl", "process", "socket" ] }
+nix = { version = "0.27.0", default_features = false, features = [ "fs", "ioctl", "process", "socket" ] }
 libnv-sys = "0.2.1"
 tempfile = "3.0"
