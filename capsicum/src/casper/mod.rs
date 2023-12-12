@@ -224,7 +224,11 @@ mod macros {
                 }
             }
 
+            /// Extension trait for [`::capsicum::casper::Casper`] that spawns this service.
             $vis trait CasperExt {
+                /// Spawn the
+                #[doc = stringify!($meth)]
+                /// service.
                 fn $meth(&self) -> ::std::io::Result<$astruct>;
             }
             impl CasperExt for ::capsicum::casper::Casper {
