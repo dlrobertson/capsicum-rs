@@ -17,6 +17,7 @@ categories = ["os::freebsd-apis"]
 include = ["src/**/*", "test/**/*", "build.rs", "LICENSE", "README.md", "CHANGELOG.md"]
 
 [package.metadata.docs.rs]
+all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 targets = [
   "x86_64-unknown-freebsd",
