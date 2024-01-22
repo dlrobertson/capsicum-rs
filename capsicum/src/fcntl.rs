@@ -31,16 +31,17 @@ pub enum Fcntl {
 /// # Example
 /// ```
 /// # use capsicum::{Fcntl, FcntlsBuilder};
-/// let rights = FcntlsBuilder::new(Fcntl::GetFL)
+/// let rights = FcntlsBuilder::new()
+///     .add(Fcntl::GetFL)
 ///     .add(Fcntl::SetFL)
 ///     .finalize();
 /// ```
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct FcntlsBuilder(u32);
 
 impl FcntlsBuilder {
-    pub fn new(right: Fcntl) -> FcntlsBuilder {
-        FcntlsBuilder(right as u32)
+    pub fn new() -> FcntlsBuilder {
+        FcntlsBuilder::default()
     }
 
     pub fn add(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
@@ -77,7 +78,8 @@ impl FcntlsBuilder {
 /// use nix::errno::Errno;
 /// use nix::fcntl::{FcntlArg, OFlag, fcntl};
 /// let file = tempfile().unwrap();
-/// let rights = FcntlsBuilder::new(Fcntl::GetFL)
+/// let rights = FcntlsBuilder::new()
+///     .add(Fcntl::GetFL)
 ///     .finalize();
 ///
 /// rights.limit(&file).unwrap();

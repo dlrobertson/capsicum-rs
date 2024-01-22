@@ -149,7 +149,8 @@ mod base {
     #[test]
     fn test_fcntl() {
         let file = tempfile().unwrap();
-        let fcntls = FcntlsBuilder::new(Fcntl::GetFL)
+        let fcntls = FcntlsBuilder::new()
+            .add(Fcntl::GetFL)
             .add(Fcntl::GetOwn)
             .finalize();
         fcntls.limit(&file).unwrap();
