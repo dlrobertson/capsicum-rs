@@ -14,9 +14,6 @@ task:
     TARGET: x86_64-unknown-freebsd
     VERSION: nightly
   matrix:
-    - name: FreeBSD 12 amd64 nightly
-      freebsd_instance:
-        image: freebsd-12-4-release-amd64
     - name: FreeBSD 13 amd64 nightly
       freebsd_instance:
         image: freebsd-13-2-release-amd64
