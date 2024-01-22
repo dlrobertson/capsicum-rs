@@ -131,7 +131,7 @@ mod base {
     #[test]
     fn test_ioctl() {
         let file = tempfile().unwrap();
-        let ioctls = IoctlsBuilder::new(i64::max_value() as libc::u_long)
+        let ioctls = IoctlsBuilder::new()
             .add(1)
             .finalize();
         ioctls.limit(&file).unwrap();
