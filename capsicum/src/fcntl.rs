@@ -44,19 +44,40 @@ impl FcntlsBuilder {
         FcntlsBuilder::default()
     }
 
+    /// Allow an additional fcntl
+    ///
+    /// # Examples
+    /// ```
+    /// # use capsicum::{Fcntl, FcntlsBuilder};
+    ///
+    /// let mut builder = FcntlsBuilder::new();
+    /// builder.add(Fcntl::GetFL);
+    /// ```
     pub fn add(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
         self.0 |= right as u32;
         self
     }
 
     pub fn finalize(&self) -> FcntlRights {
-        FcntlRights::new(self.0)
+        FcntlRights(self.0)
     }
 
+    #[deprecated(since = "0.4.0", note = "If you still need this method, please file an issue at https://github.com/dlrobertson/capsicum-rs/issues")]
     pub fn raw(&self) -> u32 {
         self.0
     }
 
+    /// Remove an allowed fcntl from the builder's list.
+    ///
+    /// # Example
+    /// ```
+    /// # use capsicum::{Fcntl, FcntlsBuilder};
+    /// let mut common_builder = FcntlsBuilder::new();
+    /// common_builder.add(Fcntl::GetFL);
+    /// common_builder.add(Fcntl::SetFL);
+    /// let mut restricted_builder = common_builder.clone();
+    /// restricted_builder.remove(Fcntl::SetFL);
+    /// ```
     pub fn remove(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
         self.0 &= !(right as u32);
         self
@@ -95,6 +116,8 @@ impl FcntlsBuilder {
 pub struct FcntlRights(u32);
 
 impl FcntlRights {
+    #[allow(missing_docs)]
+    #[deprecated(since = "0.4.0", note = "use FcntlsBuilder insted")]
     pub fn new(right: u32) -> FcntlRights {
         FcntlRights(right)
     }
