@@ -10,6 +10,17 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - Implemented `Send` and `Sync` for `CapChannel`.
   ([#66](https://github.com/dlrobertson/capsicum-rs/pull/66))
 
+### Changed
+
+- The `IoctlsBuilder` and `FcntlsBuilder` APIs have the following changes:
+  * They are both now `Clone`.
+  * Their `new` methods no longer take arguments.  The value formerly supplied
+    as an argument must now be supplied by the `add` methods.
+  * `IoctlsBuilder`'s methods now pass by move.
+  * The `IoctlsBuilder::raw`, `FcntlsBuilder::raw`, `IoctlRights::new`, and
+    `FcntlRights::new` methods are all deprecated.
+  ([#71](https://github.com/dlrobertson/capsicum-rs/pull/71))
+
 ### Removed
 
 - `util::Directory` is deprecated.  Use the `cap-std` crate instead.
