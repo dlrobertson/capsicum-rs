@@ -16,9 +16,9 @@ const CAP_IOCTLS_ALL: isize = isize::max_value();
 /// Using ioctl command codes from libc:
 /// ```
 /// # use capsicum::IoctlsBuilder;
-/// let mut builder = IoctlsBuilder::new();
-/// builder.add(libc::TIOCGETD);
-/// let rights = builder.finalize();
+/// let rights = IoctlsBuilder::new()
+///     .add(libc::TIOCGETD)
+///     .finalize();
 /// ```
 /// Declaring ioctl command codes with Nix, for ioctls not present in libc:
 /// ```
@@ -29,9 +29,9 @@ const CAP_IOCTLS_ALL: isize = isize::max_value();
 /// const TIOCGETD: libc::u_long = request_code_read!(b't', 26, mem::size_of::<libc::c_int>());
 ///
 /// fn main() {
-///     let mut builder = IoctlsBuilder::new();
-///     builder.add(TIOCGETD);
-///     let rights = builder.finalize();
+///     let rights = IoctlsBuilder::new()
+///         .add(TIOCGETD)
+///         .finalize();
 /// }
 #[derive(Clone, Debug, Default)]
 pub struct IoctlsBuilder(Vec<u_long>);
@@ -51,7 +51,7 @@ impl IoctlsBuilder {
     /// let mut builder = IoctlsBuilder::new();
     /// builder.add(libc::TIOCGETD);
     /// ```
-    pub fn add(&mut self, right: u_long) -> &mut IoctlsBuilder {
+    pub fn add(mut self, right: u_long) -> Self {
         self.0.push(right);
         self
     }
@@ -67,20 +67,20 @@ impl IoctlsBuilder {
     /// # Example
     /// ```
     /// # use capsicum::IoctlsBuilder;
-    /// let mut common_builder = IoctlsBuilder::new();
-    /// common_builder.add(libc::TIOCGETD);
-    /// common_builder.add(libc::TIOCSETD);
-    /// let mut restricted_builder = common_builder.clone();
-    /// restricted_builder.remove(libc::TIOCSETD);
+    /// let common_builder = IoctlsBuilder::new();
+    /// let common_builder = common_builder.add(libc::TIOCGETD);
+    /// let common_builder = common_builder.add(libc::TIOCSETD);
+    /// let restricted_builder = common_builder.clone();
+    /// let restricted_builder = restricted_builder.remove(libc::TIOCSETD);
     /// ```
-    pub fn remove(&mut self, right: u_long) -> &mut IoctlsBuilder {
+    pub fn remove(mut self, right: u_long) -> Self {
         self.0.retain(|&item| item != right);
         self
     }
 
     /// Finish this `IoctlsBuilder` into an [`IoctlRights`] object.
-    pub fn finalize(&self) -> IoctlRights {
-        IoctlRights::Limited(self.0.clone())
+    pub fn finalize(self) -> IoctlRights {
+        IoctlRights::Limited(self.0)
     }
 }
 

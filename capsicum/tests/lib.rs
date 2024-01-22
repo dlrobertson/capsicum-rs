@@ -50,14 +50,13 @@ mod base {
     #[test]
     fn test_rights_builer() {
         let mut builder = RightsBuilder::new(Right::Read);
-        builder
-            .add(Right::Lookup)
-            .add(Right::AclSet)
-            .add(Right::AclSet)
-            .add(Right::AclGet)
-            .add(Right::Write)
-            .remove(Right::Lookup)
-            .remove(Right::AclGet);
+        let builder = builder.add(Right::Lookup);
+        let builder = builder.add(Right::AclSet);
+        let builder = builder.add(Right::AclSet);
+        let builder = builder.add(Right::AclGet);
+        let builder = builder.add(Right::Write);
+        let builder = builder.remove(Right::Lookup);
+        let builder = builder.remove(Right::AclGet);
         assert_eq!(144115188076380163, builder.raw());
     }
 
