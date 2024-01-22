@@ -1,4 +1,5 @@
 //! A toy Casper service that provides `getuid()`.
+#![warn(missing_docs)]
 
 use std::{ffi::CStr, io};
 
