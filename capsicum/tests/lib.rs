@@ -162,7 +162,7 @@ mod base {
 mod util {
     use std::fs;
 
-    use capsicum::{self, util::Directory, CapRights, Right, RightsBuilder};
+    use capsicum::{self, CapRights, Right, RightsBuilder};
     use nix::{
         sys::wait::{waitpid, WaitStatus},
         unistd::{fork, ForkResult},
@@ -173,9 +173,10 @@ mod util {
 
     /// We can lookup paths in a directory with Right::Lookup
     #[test]
+    #[allow(deprecated)]
     fn test_basic_dir_ok() {
         let tdir = tempdir().unwrap();
-        let dir = Directory::new(tdir.path()).unwrap();
+        let dir = capsicum::util::Directory::new(tdir.path()).unwrap();
         let fname = "foo";
         fs::File::create(tdir.path().join(fname)).unwrap();
         let rights = RightsBuilder::new(Right::Read)
@@ -198,9 +199,10 @@ mod util {
 
     /// Without Right::Lookup, looking up paths in a directory is not allowed
     #[test]
+    #[allow(deprecated)]
     fn test_basic_dir_err() {
         let tdir = tempdir().unwrap();
-        let dir = Directory::new(tdir.path()).unwrap();
+        let dir = capsicum::util::Directory::new(tdir.path()).unwrap();
         let fname = "foo";
         fs::File::create(tdir.path().join(fname)).unwrap();
         let rights = RightsBuilder::new(Right::Read).finalize();

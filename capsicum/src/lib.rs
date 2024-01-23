@@ -45,6 +45,27 @@
 //!
 //! assert!(ok_file.read_to_string(&mut s).is_ok());
 //! ```
+//!
+//! ## Opening new files in a subdirectory after entering capability mode
+//!
+//! ```
+//!  use std::fs::File;
+//!  use std::io::Read;
+//!
+//!  // Before entering capability mode, we can open files in the global namespace.
+//!  let aa = cap_std::ambient_authority();
+//!  let etc = cap_std::fs::Dir::open_ambient_dir("/etc", aa).unwrap();
+//!
+//!  capsicum::enter().expect("enter failed!");
+//!
+//!  // Now, we can no longer access the global file system namespace.
+//!  let aa = cap_std::ambient_authority();
+//!  cap_std::fs::Dir::open_ambient_dir("/etc", aa).unwrap_err();
+//!  std::fs::File::open("/etc/passwd").unwrap_err();
+//!
+//!  // But we can still open children of our already-open directory
+//!  let passwd = etc.open("passwd").unwrap();
+//! ```
 #[cfg(feature = "casper")]
 #[cfg_attr(docsrs, doc(cfg(feature = "casper")))]
 pub mod casper;

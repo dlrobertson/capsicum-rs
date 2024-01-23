@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#![allow(deprecated)] // this whole file is deprecated.
 
 use std::{
     ffi::CString,
@@ -45,6 +46,7 @@ use libc::{c_int, c_uint, mode_t, openat};
 /// // within the ./src directory
 /// let fd = dir.open_file("lib.rs", 0, None).unwrap();
 /// ```
+#[deprecated(since = "0.4.0", note = "Use cap_std::fs::Dir instead")]
 pub struct Directory {
     file: File,
 }
