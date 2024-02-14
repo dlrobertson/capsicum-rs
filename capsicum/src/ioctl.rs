@@ -17,7 +17,7 @@ const CAP_IOCTLS_ALL: isize = isize::max_value();
 /// ```
 /// # use capsicum::IoctlsBuilder;
 /// let rights = IoctlsBuilder::new()
-///     .add(libc::TIOCGETD)
+///     .allow(libc::TIOCGETD)
 ///     .finalize();
 /// ```
 /// Declaring ioctl command codes with Nix, for ioctls not present in libc:
@@ -30,7 +30,7 @@ const CAP_IOCTLS_ALL: isize = isize::max_value();
 ///
 /// fn main() {
 ///     let rights = IoctlsBuilder::new()
-///         .add(TIOCGETD)
+///         .allow(TIOCGETD)
 ///         .finalize();
 /// }
 #[derive(Clone, Debug, Default)]
@@ -42,6 +42,12 @@ impl IoctlsBuilder {
         IoctlsBuilder::default()
     }
 
+    #[allow(clippy::should_implement_trait)]
+    #[deprecated(since = "0.4.0", note = "use IoctlsBuilder::allow instead")]
+    pub fn add(self, right: u_long) -> Self {
+        self.allow(right)
+    }
+
     /// Allow an additional ioctl
     ///
     /// # Examples
@@ -49,17 +55,25 @@ impl IoctlsBuilder {
     /// # use capsicum::IoctlsBuilder;
     ///
     /// let mut builder = IoctlsBuilder::new();
-    /// builder.add(libc::TIOCGETD);
+    /// builder.allow(libc::TIOCGETD);
     /// ```
-    pub fn add(mut self, right: u_long) -> Self {
+    pub fn allow(mut self, right: u_long) -> Self {
         self.0.push(right);
         self
     }
 
     #[allow(missing_docs)]
-    #[deprecated(since = "0.4.0", note = "If you still need this method, please file an issue at https://github.com/dlrobertson/capsicum-rs/issues")]
+    #[deprecated(
+        since = "0.4.0",
+        note = "If you still need this method, please file an issue at https://github.com/dlrobertson/capsicum-rs/issues"
+    )]
     pub fn raw(&self) -> Vec<u_long> {
         self.0.clone()
+    }
+
+    #[deprecated(since = "0.4.0", note = "use IoctlsBuilder::allow instead")]
+    pub fn remove(self, right: u_long) -> Self {
+        self.deny(right)
     }
 
     /// Remove an allowed ioctl from the builder's list.
@@ -68,12 +82,12 @@ impl IoctlsBuilder {
     /// ```
     /// # use capsicum::IoctlsBuilder;
     /// let common_builder = IoctlsBuilder::new();
-    /// let common_builder = common_builder.add(libc::TIOCGETD);
-    /// let common_builder = common_builder.add(libc::TIOCSETD);
+    /// let common_builder = common_builder.allow(libc::TIOCGETD);
+    /// let common_builder = common_builder.allow(libc::TIOCSETD);
     /// let restricted_builder = common_builder.clone();
-    /// let restricted_builder = restricted_builder.remove(libc::TIOCSETD);
+    /// let restricted_builder = restricted_builder.deny(libc::TIOCSETD);
     /// ```
-    pub fn remove(mut self, right: u_long) -> Self {
+    pub fn deny(mut self, right: u_long) -> Self {
         self.0.retain(|&item| item != right);
         self
     }
@@ -113,7 +127,7 @@ impl IoctlsBuilder {
 ///     SockFlag::empty()
 /// ).unwrap();
 /// let mut builder = IoctlsBuilder::new();
-/// let rights = builder.add(FIONREAD)
+/// let rights = builder.allow(FIONREAD)
 ///     .finalize();
 ///
 /// rights.limit(&fd1).unwrap();

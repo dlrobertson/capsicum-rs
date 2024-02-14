@@ -50,13 +50,13 @@ mod base {
     #[test]
     fn test_rights_builer() {
         let mut builder = RightsBuilder::new(Right::Read);
-        let builder = builder.add(Right::Lookup);
-        let builder = builder.add(Right::AclSet);
-        let builder = builder.add(Right::AclSet);
-        let builder = builder.add(Right::AclGet);
-        let builder = builder.add(Right::Write);
-        let builder = builder.remove(Right::Lookup);
-        let builder = builder.remove(Right::AclGet);
+        let builder = builder.allow(Right::Lookup);
+        let builder = builder.allow(Right::AclSet);
+        let builder = builder.allow(Right::AclSet);
+        let builder = builder.allow(Right::AclGet);
+        let builder = builder.allow(Right::Write);
+        let builder = builder.deny(Right::Lookup);
+        let builder = builder.deny(Right::AclGet);
         assert_eq!(144115188076380163, builder.raw());
     }
 
@@ -70,9 +70,9 @@ mod base {
 
         rights.merge(&to_merge).unwrap();
 
-        rights.set(Right::Read).unwrap();
+        rights.allow(Right::Read).unwrap();
 
-        rights.clear(Right::Write).unwrap();
+        rights.deny(Right::Write).unwrap();
 
         assert!(rights.is_set(Right::Read));
 
@@ -130,9 +130,7 @@ mod base {
     #[test]
     fn test_ioctl() {
         let file = tempfile().unwrap();
-        let ioctls = IoctlsBuilder::new()
-            .add(1)
-            .finalize();
+        let ioctls = IoctlsBuilder::new().allow(1).finalize();
         ioctls.limit(&file).unwrap();
         let limited = IoctlRights::from_file(&file, 10).unwrap();
         assert_eq!(ioctls, limited);
@@ -150,8 +148,8 @@ mod base {
     fn test_fcntl() {
         let file = tempfile().unwrap();
         let fcntls = FcntlsBuilder::new()
-            .add(Fcntl::GetFL)
-            .add(Fcntl::GetOwn)
+            .allow(Fcntl::GetFL)
+            .allow(Fcntl::GetOwn)
             .finalize();
         fcntls.limit(&file).unwrap();
         let new_fcntls = FcntlRights::from_file(&file).unwrap();
@@ -180,7 +178,7 @@ mod util {
         let fname = "foo";
         fs::File::create(tdir.path().join(fname)).unwrap();
         let rights = RightsBuilder::new(Right::Read)
-            .add(Right::Lookup)
+            .allow(Right::Lookup)
             .finalize();
         rights.limit(&dir).unwrap();
         match unsafe { fork() }.unwrap() {

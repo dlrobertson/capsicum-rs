@@ -156,7 +156,7 @@ pub enum Right {
 /// ```
 /// # use capsicum::{Right, RightsBuilder};
 /// let rights = RightsBuilder::new(Right::Read)
-///     .add(Right::Fexecve)
+///     .allow(Right::Fexecve)
 ///     .finalize();
 /// ```
 #[derive(Debug, Default)]
@@ -167,7 +167,12 @@ impl RightsBuilder {
         RightsBuilder(right as u64)
     }
 
+    #[deprecated(since = "0.4.0", note = "use RightsBuilder::allow instead")]
     pub fn add(&mut self, right: Right) -> &mut RightsBuilder {
+        self.allow(right)
+    }
+
+    pub fn allow(&mut self, right: Right) -> &mut RightsBuilder {
         self.0 |= right as u64;
         self
     }
@@ -180,7 +185,12 @@ impl RightsBuilder {
         self.0
     }
 
+    #[deprecated(since = "0.4.0", note = "use RightsBuilder::deny instead")]
     pub fn remove(&mut self, right: Right) -> &mut RightsBuilder {
+        self.deny(right)
+    }
+
+    pub fn deny(&mut self, right: Right) -> &mut RightsBuilder {
         self.0 = (self.0 & !(right as u64)) | 0x200000000000000;
         self
     }
@@ -265,6 +275,7 @@ impl FileRights {
         unsafe { libc::cap_rights_is_valid(&self.0) }
     }
 
+    /// Add all rights present in `other` to this structure.
     pub fn merge(&mut self, other: &FileRights) -> io::Result<()> {
         unsafe {
             let result = libc::cap_rights_merge(&mut self.0 as *mut cap_rights_t, &other.0);
@@ -276,6 +287,7 @@ impl FileRights {
         }
     }
 
+    /// Remove any rights present in `other` from this structure, if they are set.
     pub fn remove(&mut self, other: &FileRights) -> io::Result<()> {
         unsafe {
             let result = libc::cap_rights_remove(&mut self.0 as *mut cap_rights_t, &other.0);
@@ -287,7 +299,12 @@ impl FileRights {
         }
     }
 
+    #[deprecated(since = "0.4.0", note = "use FileRights::allow instead")]
     pub fn set(&mut self, raw_rights: Right) -> io::Result<()> {
+        self.allow(raw_rights)
+    }
+
+    pub fn allow(&mut self, raw_rights: Right) -> io::Result<()> {
         unsafe {
             let result =
                 libc::__cap_rights_set(&mut self.0 as *mut cap_rights_t, raw_rights as u64, 0u64);
@@ -299,7 +316,12 @@ impl FileRights {
         }
     }
 
+    #[deprecated(since = "0.4.0", note = "use FileRights::deny instead")]
     pub fn clear(&mut self, raw_rights: Right) -> io::Result<()> {
+        self.deny(raw_rights)
+    }
+
+    pub fn deny(&mut self, raw_rights: Right) -> io::Result<()> {
         unsafe {
             let result =
                 libc::__cap_rights_clear(&mut self.0 as *mut cap_rights_t, raw_rights as u64, 0u64);

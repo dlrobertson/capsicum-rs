@@ -19,6 +19,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   * `IoctlsBuilder`'s methods now pass by move.
   * The `IoctlsBuilder::raw`, `FcntlsBuilder::raw`, `IoctlRights::new`, and
     `FcntlRights::new` methods are all deprecated.
+  * Their `add` and `remove` methods have been renamed to `allow`/`deny`,
+    respectively.
+  ([#71](https://github.com/dlrobertson/capsicum-rs/pull/71))
+
+- The `RightsBuilder`'s `add`/`remove` methods have been renamed to
+  `allow`/`deny`, respectively.  Also, `FileRights`'s `set`/`clear` methods
+  have been renamed to `allow`/`deny`.
   ([#71](https://github.com/dlrobertson/capsicum-rs/pull/71))
 
 ### Removed

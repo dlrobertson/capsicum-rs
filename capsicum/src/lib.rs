@@ -37,7 +37,7 @@
 //!
 //! let mut builder = RightsBuilder::new(Right::Seek);
 //!
-//! builder.add(Right::Read);
+//! builder.allow(Right::Read);
 //!
 //! let rights = builder.finalize();
 //!

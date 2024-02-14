@@ -33,7 +33,7 @@ use libc::{c_int, c_uint, mode_t, openat};
 ///
 /// // Create the set of capabilities
 /// let rights = RightsBuilder::new(Right::Read)
-///     .add(Right::Lookup)
+///     .allow(Right::Lookup)
 ///     .finalize();
 ///
 /// // Limit the capabilities
