@@ -163,20 +163,24 @@ pub enum Right {
 pub struct RightsBuilder(u64);
 
 impl RightsBuilder {
+    /// Initialize a new `RightsBuilder` which will deny all rights.
     pub fn new(right: Right) -> RightsBuilder {
         RightsBuilder(right as u64)
     }
 
+    #[allow(missing_docs)]
     #[deprecated(since = "0.4.0", note = "use RightsBuilder::allow instead")]
     pub fn add(&mut self, right: Right) -> &mut RightsBuilder {
         self.allow(right)
     }
 
+    /// Add a new `Right` to the list of allowed rights.
     pub fn allow(&mut self, right: Right) -> &mut RightsBuilder {
         self.0 |= right as u64;
         self
     }
 
+    /// Finish this Builder into a `FileRights` object.
     pub fn finalize(&self) -> FileRights {
         FileRights::new(self.0)
     }
@@ -185,11 +189,13 @@ impl RightsBuilder {
         self.0
     }
 
+    #[allow(missing_docs)]
     #[deprecated(since = "0.4.0", note = "use RightsBuilder::deny instead")]
     pub fn remove(&mut self, right: Right) -> &mut RightsBuilder {
         self.deny(right)
     }
 
+    /// Remove another `Right` from the list of allowed rights.
     pub fn deny(&mut self, right: Right) -> &mut RightsBuilder {
         self.0 = (self.0 & !(right as u64)) | 0x200000000000000;
         self
@@ -227,6 +233,7 @@ pub struct FileRights(cap_rights_t);
 
 impl FileRights {
     pub fn new(raw_rights: u64) -> FileRights {
+        // cap_rights_init is documented as infalliable.
         let inner_rights = unsafe {
             let mut inner_rights = mem::zeroed();
             libc::__cap_rights_init(
@@ -237,12 +244,30 @@ impl FileRights {
             );
             inner_rights
         };
-        // cap_rights_init is documented as infalliable.
         let rights = FileRights(inner_rights);
         assert!(rights.is_valid());
         rights
     }
 
+    /// Retrieve the list of rights currently allowed for the given file.
+    /// # Example
+    /// ```
+    /// # use std::os::unix::io::AsRawFd;
+    /// # use capsicum::{CapRights, RightsBuilder, FileRights, Right};
+    /// # use tempfile::tempfile;
+    /// use nix::errno::Errno;
+    /// use nix::fcntl::{FcntlArg, OFlag, fcntl};
+    /// let file = tempfile().unwrap();
+    /// let rights = RightsBuilder::new(Right::Read)
+    ///     .finalize();
+    ///
+    /// rights.limit(&file).unwrap();
+    /// let rights2 = FileRights::from_file(&file).unwrap();
+    /// assert_eq!(rights, rights2);
+    /// ```
+    ///
+    /// # See Also
+    /// [`cap_rights_get(3)`](https://www.freebsd.org/cgi/man.cgi?query=cap_rights_get)
     pub fn from_file<T: AsRawFd>(fd: &T) -> io::Result<FileRights> {
         let inner_rights = unsafe {
             let mut inner_rights = unsafe { mem::zeroed() };
@@ -261,6 +286,23 @@ impl FileRights {
         Ok(rights)
     }
 
+    /// Checks if `self` contains all of the rights present in `other`.
+    ///
+    /// # Example
+    /// ```
+    /// # use capsicum::{CapRights, RightsBuilder, FileRights, Right};
+    /// let rights1 = RightsBuilder::new(Right::Read)
+    ///     .allow(Right::Write)
+    ///     .finalize();
+    /// let rights2 = RightsBuilder::new(Right::Write)
+    ///     .finalize();
+    /// assert!(rights1.contains(&rights2));
+    ///
+    /// let rights3 = RightsBuilder::new(Right::Read)
+    ///     .allow(Right::Seek)
+    ///     .finalize();
+    /// assert!(!rights1.contains(&rights3));
+    /// ```
     pub fn contains(&self, other: &FileRights) -> bool {
         unsafe { libc::cap_rights_contains(&self.0, &other.0) }
     }
@@ -299,11 +341,13 @@ impl FileRights {
         }
     }
 
+    #[allow(missing_docs)]
     #[deprecated(since = "0.4.0", note = "use FileRights::allow instead")]
     pub fn set(&mut self, raw_rights: Right) -> io::Result<()> {
         self.allow(raw_rights)
     }
 
+    /// Add another `Right` to the list that will be allowed.
     pub fn allow(&mut self, raw_rights: Right) -> io::Result<()> {
         unsafe {
             let result =
@@ -316,11 +360,13 @@ impl FileRights {
         }
     }
 
+    #[allow(missing_docs)]
     #[deprecated(since = "0.4.0", note = "use FileRights::deny instead")]
     pub fn clear(&mut self, raw_rights: Right) -> io::Result<()> {
         self.deny(raw_rights)
     }
 
+    /// Remove an allowed `Right` from the list.
     pub fn deny(&mut self, raw_rights: Right) -> io::Result<()> {
         unsafe {
             let result =

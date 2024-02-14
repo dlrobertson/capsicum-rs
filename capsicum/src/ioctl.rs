@@ -42,6 +42,7 @@ impl IoctlsBuilder {
         IoctlsBuilder::default()
     }
 
+    #[allow(missing_docs)]
     #[allow(clippy::should_implement_trait)]
     #[deprecated(since = "0.4.0", note = "use IoctlsBuilder::allow instead")]
     pub fn add(self, right: u_long) -> Self {
@@ -71,6 +72,7 @@ impl IoctlsBuilder {
         self.0.clone()
     }
 
+    #[allow(missing_docs)]
     #[deprecated(since = "0.4.0", note = "use IoctlsBuilder::allow instead")]
     pub fn remove(self, right: u_long) -> Self {
         self.deny(right)

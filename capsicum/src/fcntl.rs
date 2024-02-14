@@ -40,10 +40,12 @@ pub enum Fcntl {
 pub struct FcntlsBuilder(u32);
 
 impl FcntlsBuilder {
+    /// Initialize a new `FcntlsBuilder` which will deny all rights.
     pub fn new() -> FcntlsBuilder {
         FcntlsBuilder::default()
     }
 
+    #[allow(missing_docs)]
     #[deprecated(since = "0.4.0", note = "use FcntlsBuilder::allow instead")]
     pub fn add(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
         self.allow(right)
@@ -63,10 +65,12 @@ impl FcntlsBuilder {
         self
     }
 
+    /// Finish this Builder and turn it into an `FcntlRights` object.
     pub fn finalize(&self) -> FcntlRights {
         FcntlRights(self.0)
     }
 
+    #[allow(missing_docs)]
     #[deprecated(
         since = "0.4.0",
         note = "If you still need this method, please file an issue at https://github.com/dlrobertson/capsicum-rs/issues"
@@ -75,6 +79,7 @@ impl FcntlsBuilder {
         self.0
     }
 
+    #[allow(missing_docs)]
     #[deprecated(since = "0.4.0", note = "use FcntlsBuilder::deny instead")]
     pub fn remove(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
         self.deny(right)
@@ -135,6 +140,26 @@ impl FcntlRights {
         FcntlRights(right)
     }
 
+    /// Retrieve the list of fcntl rights currently allowed for the given file.
+    /// # Example
+    /// ```
+    /// # use std::os::unix::io::AsRawFd;
+    /// # use capsicum::{CapRights, FcntlsBuilder, Fcntl, FcntlRights};
+    /// # use tempfile::tempfile;
+    /// use nix::errno::Errno;
+    /// use nix::fcntl::{FcntlArg, OFlag, fcntl};
+    /// let file = tempfile().unwrap();
+    /// let rights = FcntlsBuilder::new()
+    ///     .allow(Fcntl::GetFL)
+    ///     .finalize();
+    ///
+    /// rights.limit(&file).unwrap();
+    /// let rights2 = FcntlRights::from_file(&file).unwrap();
+    /// assert_eq!(rights, rights2);
+    /// ```
+    ///
+    /// # See Also
+    /// [`cap_fcntls_get(2)`](https://www.freebsd.org/cgi/man.cgi?query=cap_fcntls_get)
     pub fn from_file<T: AsRawFd>(fd: &T) -> io::Result<FcntlRights> {
         unsafe {
             let mut empty_fcntls = 0;
