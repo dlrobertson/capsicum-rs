@@ -31,32 +31,67 @@ pub enum Fcntl {
 /// # Example
 /// ```
 /// # use capsicum::{Fcntl, FcntlsBuilder};
-/// let rights = FcntlsBuilder::new(Fcntl::GetFL)
-///     .add(Fcntl::SetFL)
+/// let rights = FcntlsBuilder::new()
+///     .allow(Fcntl::GetFL)
+///     .allow(Fcntl::SetFL)
 ///     .finalize();
 /// ```
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct FcntlsBuilder(u32);
 
 impl FcntlsBuilder {
-    pub fn new(right: Fcntl) -> FcntlsBuilder {
-        FcntlsBuilder(right as u32)
+    pub fn new() -> FcntlsBuilder {
+        FcntlsBuilder::default()
     }
 
+    #[deprecated(since = "0.4.0", note = "use FcntlsBuilder::allow instead")]
     pub fn add(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
+        self.allow(right)
+    }
+
+    /// Allow an additional fcntl
+    ///
+    /// # Examples
+    /// ```
+    /// # use capsicum::{Fcntl, FcntlsBuilder};
+    ///
+    /// let mut builder = FcntlsBuilder::new();
+    /// builder.allow(Fcntl::GetFL);
+    /// ```
+    pub fn allow(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
         self.0 |= right as u32;
         self
     }
 
     pub fn finalize(&self) -> FcntlRights {
-        FcntlRights::new(self.0)
+        FcntlRights(self.0)
     }
 
+    #[deprecated(
+        since = "0.4.0",
+        note = "If you still need this method, please file an issue at https://github.com/dlrobertson/capsicum-rs/issues"
+    )]
     pub fn raw(&self) -> u32 {
         self.0
     }
 
+    #[deprecated(since = "0.4.0", note = "use FcntlsBuilder::deny instead")]
     pub fn remove(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
+        self.deny(right)
+    }
+
+    /// Remove an allowed fcntl from the builder's list.
+    ///
+    /// # Example
+    /// ```
+    /// # use capsicum::{Fcntl, FcntlsBuilder};
+    /// let mut common_builder = FcntlsBuilder::new();
+    /// common_builder.allow(Fcntl::GetFL);
+    /// common_builder.allow(Fcntl::SetFL);
+    /// let mut restricted_builder = common_builder.clone();
+    /// restricted_builder.deny(Fcntl::SetFL);
+    /// ```
+    pub fn deny(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
         self.0 &= !(right as u32);
         self
     }
@@ -77,7 +112,8 @@ impl FcntlsBuilder {
 /// use nix::errno::Errno;
 /// use nix::fcntl::{FcntlArg, OFlag, fcntl};
 /// let file = tempfile().unwrap();
-/// let rights = FcntlsBuilder::new(Fcntl::GetFL)
+/// let rights = FcntlsBuilder::new()
+///     .allow(Fcntl::GetFL)
 ///     .finalize();
 ///
 /// rights.limit(&file).unwrap();
@@ -93,6 +129,8 @@ impl FcntlsBuilder {
 pub struct FcntlRights(u32);
 
 impl FcntlRights {
+    #[allow(missing_docs)]
+    #[deprecated(since = "0.4.0", note = "use FcntlsBuilder insted")]
     pub fn new(right: u32) -> FcntlRights {
         FcntlRights(right)
     }

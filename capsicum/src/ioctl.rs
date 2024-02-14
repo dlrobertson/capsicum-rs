@@ -16,8 +16,9 @@ const CAP_IOCTLS_ALL: isize = isize::max_value();
 /// Using ioctl command codes from libc:
 /// ```
 /// # use capsicum::IoctlsBuilder;
-/// let builder = IoctlsBuilder::new(libc::TIOCGETD);
-/// let rights = builder.finalize();
+/// let rights = IoctlsBuilder::new()
+///     .allow(libc::TIOCGETD)
+///     .finalize();
 /// ```
 /// Declaring ioctl command codes with Nix, for ioctls not present in libc:
 /// ```
@@ -28,35 +29,72 @@ const CAP_IOCTLS_ALL: isize = isize::max_value();
 /// const TIOCGETD: libc::u_long = request_code_read!(b't', 26, mem::size_of::<libc::c_int>());
 ///
 /// fn main() {
-///     let builder = IoctlsBuilder::new(TIOCGETD);
-///     let rights = builder.finalize();
+///     let rights = IoctlsBuilder::new()
+///         .allow(TIOCGETD)
+///         .finalize();
 /// }
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct IoctlsBuilder(Vec<u_long>);
 
 impl IoctlsBuilder {
-    pub fn new(right: u_long) -> IoctlsBuilder {
-        IoctlsBuilder(vec![right])
+    /// Create a new `IoctlsBuilder` with an initially empty list of allowed ioctls.
+    pub fn new() -> IoctlsBuilder {
+        IoctlsBuilder::default()
     }
 
-    pub fn add(&mut self, right: u_long) -> &mut IoctlsBuilder {
+    #[allow(clippy::should_implement_trait)]
+    #[deprecated(since = "0.4.0", note = "use IoctlsBuilder::allow instead")]
+    pub fn add(self, right: u_long) -> Self {
+        self.allow(right)
+    }
+
+    /// Allow an additional ioctl
+    ///
+    /// # Examples
+    /// ```
+    /// # use capsicum::IoctlsBuilder;
+    ///
+    /// let mut builder = IoctlsBuilder::new();
+    /// builder.allow(libc::TIOCGETD);
+    /// ```
+    pub fn allow(mut self, right: u_long) -> Self {
         self.0.push(right);
         self
     }
 
-    // Is this method really necessary?  If it is, I suggest renaming it to
-    // "into_raw", and also deriving Clone on the builder.
+    #[allow(missing_docs)]
+    #[deprecated(
+        since = "0.4.0",
+        note = "If you still need this method, please file an issue at https://github.com/dlrobertson/capsicum-rs/issues"
+    )]
     pub fn raw(&self) -> Vec<u_long> {
         self.0.clone()
     }
 
-    pub fn remove(&mut self, right: u_long) -> &mut IoctlsBuilder {
+    #[deprecated(since = "0.4.0", note = "use IoctlsBuilder::allow instead")]
+    pub fn remove(self, right: u_long) -> Self {
+        self.deny(right)
+    }
+
+    /// Remove an allowed ioctl from the builder's list.
+    ///
+    /// # Example
+    /// ```
+    /// # use capsicum::IoctlsBuilder;
+    /// let common_builder = IoctlsBuilder::new();
+    /// let common_builder = common_builder.allow(libc::TIOCGETD);
+    /// let common_builder = common_builder.allow(libc::TIOCSETD);
+    /// let restricted_builder = common_builder.clone();
+    /// let restricted_builder = restricted_builder.deny(libc::TIOCSETD);
+    /// ```
+    pub fn deny(mut self, right: u_long) -> Self {
         self.0.retain(|&item| item != right);
         self
     }
 
-    pub fn finalize(&self) -> IoctlRights {
-        IoctlRights::new(self.0.clone())
+    /// Finish this `IoctlsBuilder` into an [`IoctlRights`] object.
+    pub fn finalize(self) -> IoctlRights {
+        IoctlRights::Limited(self.0)
     }
 }
 
@@ -88,7 +126,8 @@ impl IoctlsBuilder {
 ///     None,
 ///     SockFlag::empty()
 /// ).unwrap();
-/// let rights = IoctlsBuilder::new(FIONREAD)
+/// let mut builder = IoctlsBuilder::new();
+/// let rights = builder.allow(FIONREAD)
 ///     .finalize();
 ///
 /// rights.limit(&fd1).unwrap();
@@ -111,8 +150,8 @@ pub enum IoctlRights {
 }
 
 impl IoctlRights {
-    // It's pretty hard to use this function correctly.  I suggest removing it
-    // from the public API, and forcing people to use IoctlsBuilder instead.
+    #[allow(missing_docs)]
+    #[deprecated(since = "0.4.0", note = "use IoctlsBuilder insted")]
     pub fn new(rights: Vec<u_long>) -> IoctlRights {
         IoctlRights::Limited(rights)
     }
