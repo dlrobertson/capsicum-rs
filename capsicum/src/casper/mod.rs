@@ -85,6 +85,11 @@ impl Drop for CapChannel {
     }
 }
 
+// CapChannel can be Send and Sync because its contained pointer has unique
+// ownership, and it is not Copy or Clone.
+unsafe impl Send for CapChannel {}
+unsafe impl Sync for CapChannel {}
+
 /// A channel to communicate with the Casper process
 #[derive(Debug)]
 pub struct Casper(CapChannel);
