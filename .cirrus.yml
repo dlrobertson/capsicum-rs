@@ -63,7 +63,6 @@ lint_task:
     - . $HOME/.cargo/env
     - rustup component add --toolchain $VERSION clippy
     - rustup component add --toolchain $VERSION rustfmt
-    - pkg install -y cargo-audit
   cargo_cache:
     folder: $HOME/.cargo/registry
   clippy_script:
@@ -75,5 +74,6 @@ lint_task:
     - cargo +$VERSION fmt --all -- --check --color=never
   audit_script:
     - . $HOME/.cargo/env
+    - cargo install --version=0.17.6 cargo-audit
     - cargo audit
   before_cache_script: rm -rf $CARGO_HOME/registry/index
