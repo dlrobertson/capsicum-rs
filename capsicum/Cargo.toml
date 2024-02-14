@@ -42,6 +42,7 @@ ctor = "0.2.3"
 version_check = "0.9.4"
 
 [dev-dependencies]
+cap-std = "3.0"
 cstr = "0.2.11"
 nix = { version = "0.27.0", default_features = false, features = [ "fs", "ioctl", "process", "socket" ] }
 libnv-sys = "0.2.1"

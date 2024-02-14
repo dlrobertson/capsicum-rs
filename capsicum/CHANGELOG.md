@@ -10,6 +10,11 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - Implemented `Send` and `Sync` for `CapChannel`.
   ([#66](https://github.com/dlrobertson/capsicum-rs/pull/66))
 
+### Removed
+
+- `util::Directory` is deprecated.  Use the `cap-std` crate instead.
+  ([#74](https://github.com/dlrobertson/capsicum-rs/pull/74))
+
 ## [0.3.0] - 2023-09-21
 
 ### Changed
