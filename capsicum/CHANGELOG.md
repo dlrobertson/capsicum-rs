@@ -28,7 +28,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   have been renamed to `allow`/`deny`.
   ([#71](https://github.com/dlrobertson/capsicum-rs/pull/71))
 
+- More changes to `RightsBuilder`.
+  * The `new` method no longer takes an argument.
+  * `Rights` are now `Clone`, `Copy`, and `Eq`.
+  * `RightsBuilder` is now `Clone`.
+  ([#80](https://github.com/dlrobertson/capsicum-rs/pull/80))
+
 ### Removed
+
+- `RightsBuilder::raw` is removed and `FileRights::new` is deprecated.
+  ([#80](https://github.com/dlrobertson/capsicum-rs/pull/80))
 
 - `util::Directory` is deprecated.  Use the `cap-std` crate instead.
   ([#74](https://github.com/dlrobertson/capsicum-rs/pull/74))

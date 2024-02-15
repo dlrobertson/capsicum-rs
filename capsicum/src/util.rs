@@ -32,7 +32,8 @@ use libc::{c_int, c_uint, mode_t, openat};
 /// let dir = Directory::new("./src").unwrap();
 ///
 /// // Create the set of capabilities
-/// let rights = RightsBuilder::new(Right::Read)
+/// let rights = RightsBuilder::new()
+///     .allow(Right::Read)
 ///     .allow(Right::Lookup)
 ///     .finalize();
 ///
