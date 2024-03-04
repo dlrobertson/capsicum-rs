@@ -74,6 +74,7 @@ mod fcntl;
 mod ioctl;
 mod process;
 mod right;
+/// Deprecated utilities
 pub mod util;
 
 pub use fcntl::{Fcntl, FcntlRights, FcntlsBuilder};
