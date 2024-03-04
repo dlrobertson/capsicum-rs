@@ -185,10 +185,13 @@ impl RightsBuilder {
 
     /// Add a new `Right` to the list of allowed rights.
     pub fn allow(&mut self, right: Right) -> &mut RightsBuilder {
-        let result =
-            unsafe { libc::__cap_rights_set(&mut self.0 as *mut cap_rights_t, right as u64, 0u64) };
+        let result = unsafe { libc::__cap_rights_set(self.as_mut_ptr(), right as u64, 0u64) };
         debug_assert!(!result.is_null()); // documented as infalliable
         self
+    }
+
+    fn as_mut_ptr(&mut self) -> *mut cap_rights_t {
+        &mut self.0 as *mut cap_rights_t
     }
 
     /// Finish this Builder into a `FileRights` object.
@@ -208,9 +211,7 @@ impl RightsBuilder {
 
     /// Remove another `Right` from the list of allowed rights.
     pub fn deny(&mut self, right: Right) -> &mut RightsBuilder {
-        let result = unsafe {
-            libc::__cap_rights_clear(&mut self.0 as *mut cap_rights_t, right as u64, 0u64)
-        };
+        let result = unsafe { libc::__cap_rights_clear(self.as_mut_ptr(), right as u64, 0u64) };
         debug_assert!(!result.is_null()); // documented as infalliable
         self
     }
@@ -270,6 +271,10 @@ impl FileRights {
         let rights = FileRights(inner_rights);
         assert!(rights.is_valid());
         rights
+    }
+
+    fn as_mut_ptr(&mut self) -> *mut cap_rights_t {
+        &mut self.0 as *mut cap_rights_t
     }
 
     /// Retrieve the list of rights currently allowed for the given file.
@@ -345,7 +350,7 @@ impl FileRights {
     /// Add all rights present in `other` to this structure.
     pub fn merge(&mut self, other: &FileRights) -> io::Result<()> {
         unsafe {
-            let result = libc::cap_rights_merge(&mut self.0 as *mut cap_rights_t, &other.0);
+            let result = libc::cap_rights_merge(self.as_mut_ptr(), &other.0);
             if result.is_null() {
                 Err(io::Error::last_os_error())
             } else {
@@ -357,7 +362,7 @@ impl FileRights {
     /// Remove any rights present in `other` from this structure, if they are set.
     pub fn remove(&mut self, other: &FileRights) -> io::Result<()> {
         unsafe {
-            let result = libc::cap_rights_remove(&mut self.0 as *mut cap_rights_t, &other.0);
+            let result = libc::cap_rights_remove(self.as_mut_ptr(), &other.0);
             if result.is_null() {
                 Err(io::Error::last_os_error())
             } else {
@@ -375,8 +380,7 @@ impl FileRights {
     /// Add another `Right` to the list that will be allowed.
     pub fn allow(&mut self, right: Right) -> io::Result<()> {
         unsafe {
-            let result =
-                libc::__cap_rights_set(&mut self.0 as *mut cap_rights_t, right as u64, 0u64);
+            let result = libc::__cap_rights_set(self.as_mut_ptr(), right as u64, 0u64);
             if result.is_null() {
                 Err(io::Error::last_os_error())
             } else {
@@ -394,8 +398,7 @@ impl FileRights {
     /// Remove an allowed `Right` from the list.
     pub fn deny(&mut self, right: Right) -> io::Result<()> {
         unsafe {
-            let result =
-                libc::__cap_rights_clear(&mut self.0 as *mut cap_rights_t, right as u64, 0u64);
+            let result = libc::__cap_rights_clear(self.as_mut_ptr(), right as u64, 0u64);
             if result.is_null() {
                 Err(io::Error::last_os_error())
             } else {
