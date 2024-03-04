@@ -147,7 +147,7 @@ mod base {
 mod util {
     use std::fs;
 
-    use capsicum::{self, CapRights, Right, RightsBuilder};
+    use capsicum::{CapRights, Right, RightsBuilder};
     use nix::{
         sys::wait::{waitpid, WaitStatus},
         unistd::{fork, ForkResult},
