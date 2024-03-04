@@ -34,6 +34,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   * `RightsBuilder` is now `Clone`.
   ([#80](https://github.com/dlrobertson/capsicum-rs/pull/80))
 
+### Fixed
+
+- Fixed a crash that could happen within the C library, triggered by combining
+  certain `Rights` values.
+  ([#80](https://github.com/dlrobertson/capsicum-rs/pull/80))
+
 ### Removed
 
 - `RightsBuilder::raw` is removed and `FileRights::new` is deprecated.
