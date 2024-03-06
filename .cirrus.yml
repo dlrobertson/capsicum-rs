@@ -1,6 +1,7 @@
 setup: &SETUP
   env:
     HOME: /tmp # cargo needs it
+    RUSTFLAGS: -D warnings
     VERSION: nightly
   setup_script:
     - pkg install -y llvm

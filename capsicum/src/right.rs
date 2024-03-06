@@ -256,6 +256,7 @@ pub struct FileRights(cap_rights_t);
 impl FileRights {
     // Deprecate because it's unsafe.  The assertion will fail for some inputs.
     #[deprecated(since = "0.4.0", note = "use RightsBuilder instead")]
+    #[allow(missing_docs)]
     pub fn new(raw_rights: u64) -> FileRights {
         // cap_rights_init is documented as infalliable.
         let inner_rights = unsafe {
@@ -269,7 +270,7 @@ impl FileRights {
             inner_rights
         };
         let rights = FileRights(inner_rights);
-        assert!(rights.is_valid());
+        assert!(rights.is_valid_priv());
         rights
     }
 
@@ -311,7 +312,7 @@ impl FileRights {
             inner_rights
         };
         let rights = FileRights(inner_rights);
-        assert!(rights.is_valid());
+        assert!(rights.is_valid_priv());
         Ok(rights)
     }
 
@@ -339,11 +340,29 @@ impl FileRights {
         unsafe { libc::cap_rights_contains(&self.0, &other.0) }
     }
 
+    /// Is the given [`Right`] set here?
+    ///
+    /// # Example
+    /// ```
+    /// # use capsicum::{Right, RightsBuilder, FileRights};
+    ///
+    /// let rights = RightsBuilder::new()
+    ///     .allow(Right::Read)
+    ///     .finalize();
+    /// assert!(rights.is_set(Right::Read));
+    /// assert!(!rights.is_set(Right::Write));
+    /// ```
     pub fn is_set(&self, right: Right) -> bool {
         unsafe { libc::__cap_rights_is_set(&self.0 as *const cap_rights_t, right as u64, 0u64) }
     }
 
+    #[deprecated(since = "0.4.0", note = "Unnecessary unless you use FileRights::new")]
+    #[allow(missing_docs)]
     pub fn is_valid(&self) -> bool {
+        self.is_valid_priv()
+    }
+
+    fn is_valid_priv(&self) -> bool {
         unsafe { libc::cap_rights_is_valid(&self.0) }
     }
 
