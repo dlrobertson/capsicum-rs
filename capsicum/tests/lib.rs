@@ -48,25 +48,12 @@ mod base {
     }
 
     #[test]
-    fn test_rights_builer() {
-        let mut builder = RightsBuilder::new(Right::Read);
-        let builder = builder.allow(Right::Lookup);
-        let builder = builder.allow(Right::AclSet);
-        let builder = builder.allow(Right::AclSet);
-        let builder = builder.allow(Right::AclGet);
-        let builder = builder.allow(Right::Write);
-        let builder = builder.deny(Right::Lookup);
-        let builder = builder.deny(Right::AclGet);
-        assert_eq!(144115188076380163, builder.raw());
-    }
-
-    #[test]
     fn test_rights() {
         let mut file = NamedTempFile::new().unwrap();
 
-        let mut rights = RightsBuilder::new(Right::Null).finalize();
+        let mut rights = RightsBuilder::new().allow(Right::Null).finalize();
 
-        let to_merge = RightsBuilder::new(Right::Write).finalize();
+        let to_merge = RightsBuilder::new().allow(Right::Write).finalize();
 
         rights.merge(&to_merge).unwrap();
 
@@ -160,7 +147,7 @@ mod base {
 mod util {
     use std::fs;
 
-    use capsicum::{self, CapRights, Right, RightsBuilder};
+    use capsicum::{CapRights, Right, RightsBuilder};
     use nix::{
         sys::wait::{waitpid, WaitStatus},
         unistd::{fork, ForkResult},
@@ -177,7 +164,8 @@ mod util {
         let dir = capsicum::util::Directory::new(tdir.path()).unwrap();
         let fname = "foo";
         fs::File::create(tdir.path().join(fname)).unwrap();
-        let rights = RightsBuilder::new(Right::Read)
+        let rights = RightsBuilder::new()
+            .allow(Right::Read)
             .allow(Right::Lookup)
             .finalize();
         rights.limit(&dir).unwrap();
@@ -203,7 +191,7 @@ mod util {
         let dir = capsicum::util::Directory::new(tdir.path()).unwrap();
         let fname = "foo";
         fs::File::create(tdir.path().join(fname)).unwrap();
-        let rights = RightsBuilder::new(Right::Read).finalize();
+        let rights = RightsBuilder::new().add(Right::Read).finalize();
         rights.limit(&dir).unwrap();
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {

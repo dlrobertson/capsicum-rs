@@ -35,13 +35,11 @@
 //! let mut ok_file = File::open("/etc/passwd").unwrap();
 //! let mut s = String::new();
 //!
-//! let mut builder = RightsBuilder::new(Right::Seek);
-//!
-//! builder.allow(Right::Read);
-//!
-//! let rights = builder.finalize();
-//!
-//! rights.limit(&ok_file).unwrap();
+//! RightsBuilder::new()
+//!     .allow(Right::Seek)
+//!     .allow(Right::Read)
+//!     .finalize()
+//!     .limit(&ok_file).unwrap();
 //!
 //! assert!(ok_file.read_to_string(&mut s).is_ok());
 //! ```
