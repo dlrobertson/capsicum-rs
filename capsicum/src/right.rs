@@ -121,7 +121,7 @@ pub enum Right {
         Right::Shutdown
     ),
     All0 = cap_right!(0, 0x7FFFFFFFFFu64),
-    Unused040 = cap_right!(0, 0u64),
+    Unused044 = cap_right!(0, 0x0000080000000000u64),
     Unused057 = cap_right!(0, 0x0100000000000000u64),
     MacGet = cap_right!(1, 0x1u64),
     MacSet = cap_right!(1, 0x2u64),
