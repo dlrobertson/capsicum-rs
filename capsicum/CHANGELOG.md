@@ -7,10 +7,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Added `Right::RenameatTarget`.
+  ([#85](https://github.com/dlrobertson/capsicum-rs/pull/85))
+
 - Implemented `Send` and `Sync` for `CapChannel`.
   ([#66](https://github.com/dlrobertson/capsicum-rs/pull/66))
 
 ### Changed
+
+- Renamed `Right::Renameat` to `Right::RenameatSource`.
+  ([#85](https://github.com/dlrobertson/capsicum-rs/pull/85))
 
 - The `IoctlsBuilder` and `FcntlsBuilder` APIs have the following changes:
   * They are both now `Clone`.
