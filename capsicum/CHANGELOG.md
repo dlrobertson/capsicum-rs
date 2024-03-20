@@ -45,6 +45,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - `RightsBuilder::raw` is removed and `FileRights::new` is deprecated.
   ([#80](https://github.com/dlrobertson/capsicum-rs/pull/80))
 
+- `FileRights::is_valid` is deprecated, because it is no longer useful without
+  `FileRights::new`.
+  ([#81](https://github.com/dlrobertson/capsicum-rs/pull/81))
+
 - `util::Directory` is deprecated.  Use the `cap-std` crate instead.
   ([#74](https://github.com/dlrobertson/capsicum-rs/pull/74))
 
