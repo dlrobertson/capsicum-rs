@@ -106,7 +106,6 @@ impl Casper {
     // See https://github.com/rust-lang/rust/issues/39575 for an explanation of
     // why this is considered `unsafe`.
     pub unsafe fn new() -> io::Result<Self> {
-        // cap_init is always safe;
         let chan = unsafe { casper_sys::cap_init() };
         CapChannel::from_raw_ptr(chan)
             .map(Casper)
@@ -115,14 +114,18 @@ impl Casper {
 
     /// Open a connection to the named Casper service.  Should not be used
     /// directly except by [`service_connection!`].
+    // Needs &mut self because cap_service_open is reentrant but not
+    // thread-safe.
     #[doc(hidden)]
-    pub fn service_open(&self, name: &CStr) -> io::Result<CapChannel> {
+    pub fn service_open(&mut self, name: &CStr) -> io::Result<CapChannel> {
         let chan = unsafe { casper_sys::cap_service_open(self.0.as_ptr(), name.as_ptr()) };
         CapChannel::from_raw_ptr(chan).ok_or(io::Error::last_os_error())
     }
 
     /// Clone the handle to the Casper process.
-    pub fn try_clone(&self) -> io::Result<Self> {
+    // Needs &mut self because cap_clone is reentrant but not
+    // thread-safe.
+    pub fn try_clone(&mut self) -> io::Result<Self> {
         // Safe as long as self.0 is a valid channel, which we ensure
         let chan2 = unsafe { casper_sys::cap_clone(self.0.as_ptr()) };
         CapChannel::from_raw_ptr(chan2)
@@ -234,10 +237,10 @@ mod macros {
                 /// Spawn the
                 #[doc = stringify!($meth)]
                 /// service.
-                fn $meth(&self) -> ::std::io::Result<$astruct>;
+                fn $meth(&mut self) -> ::std::io::Result<$astruct>;
             }
             impl CasperExt for ::capsicum::casper::Casper {
-                fn $meth(&self) -> ::std::io::Result<$astruct> {
+                fn $meth(&mut self) -> ::std::io::Result<$astruct> {
                     self.service_open($cname)
                         .map($astruct)
                 }

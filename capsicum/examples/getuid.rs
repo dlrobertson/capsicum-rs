@@ -74,7 +74,7 @@ impl CapAgent {
 
 fn main() {
     // Safe because we're still single-threaded
-    let casper = unsafe { Casper::new().unwrap() };
+    let mut casper = unsafe { Casper::new().unwrap() };
     capsicum::enter().unwrap();
 
     let mut cap_uid = casper.uid().unwrap();
