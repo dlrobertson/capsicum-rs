@@ -81,7 +81,8 @@ pub enum Right {
     Mkdirat = right_or!(Right::Lookup, 0x800000u64),
     Mkfifoat = right_or!(Right::Lookup, 0x1000000u64),
     Mknotat = right_or!(Right::Lookup, 0x2000000u64),
-    Renameat = right_or!(Right::Lookup, 0x4000000u64),
+    RenameatSource = right_or!(Right::Lookup, 0x4000000u64),
+    RenameatTarget = right_or!(Right::Lookup, 0x0000040000000000u64),
     Symlinkat = right_or!(Right::Lookup, 0x8000000u64),
     Unlinkat = right_or!(Right::Lookup, 0x10000000u64),
     Accept = cap_right!(0, 0x20000000u64),
@@ -148,6 +149,13 @@ pub enum Right {
     All1 = cap_right!(1, 0x1FFFFFu64),
     Unused122 = cap_right!(1, 0x200000u64),
     Unused157 = cap_right!(1, 0x100000000000000u64),
+}
+
+impl Right {
+    #[allow(non_upper_case_globals)]
+    #[allow(missing_docs)]
+    #[deprecated(since = "0.4.0", note = "Use Right::RenameatSource instead")]
+    pub const Renameat: Right = Right::RenameatSource;
 }
 
 /// Used to construct a new set of allowed file rights.
