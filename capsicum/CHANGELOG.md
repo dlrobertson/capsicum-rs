@@ -15,6 +15,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Fixed two misnamed constants: `Right::Fchflagsat` and `Right::Mknotat`.
+  ([#87](https://github.com/dlrobertson/capsicum-rs/pull/87))
+
 - Renamed `Right::Renameat` to `Right::RenameatSource`.
   ([#85](https://github.com/dlrobertson/capsicum-rs/pull/85))
 
