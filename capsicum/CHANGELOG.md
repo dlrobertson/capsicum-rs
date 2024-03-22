@@ -5,6 +5,11 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] - ReleaseDAte
 
+### Fixed
+
+- Fixed two misnamed constants: `Right::Fchflagsat` and `Right::Mknotat`.
+  ([#87](https://github.com/dlrobertson/capsicum-rs/pull/87))
+
 ### Removed
 
 - Removed the `libnv` and `libnv-sys` crate features.  Those were accidental
