@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Added `Right::LinkatSource`.
+  ([#86](https://github.com/dlrobertson/capsicum-rs/pull/86))
+
 - Added `Right::RenameatTarget`.
   ([#85](https://github.com/dlrobertson/capsicum-rs/pull/85))
 
@@ -14,6 +17,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
   ([#66](https://github.com/dlrobertson/capsicum-rs/pull/66))
 
 ### Changed
+
+- Renamed `Right::Linkat` to `Right::LinkatTarget`.
+  ([#86](https://github.com/dlrobertson/capsicum-rs/pull/86))
 
 - Renamed `Right::Renameat` to `Right::RenameatSource`.
   ([#85](https://github.com/dlrobertson/capsicum-rs/pull/85))
