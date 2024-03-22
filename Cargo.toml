@@ -1,3 +1,7 @@
 [workspace]
 resolver = "2"
 members = ["capsicum", "casper-sys"]
+
+[patch.crates-io]
+libc = { git = "https://github.com/asomers/libc.git", rev = "00300738e7465725fdac5229f486241caed2cfcc" }
+nix = { git = "https://github.com/asomers/nix.git", rev = "5c8b253b8b3b93e262cd6e13c09460c0fdafa21b" }
