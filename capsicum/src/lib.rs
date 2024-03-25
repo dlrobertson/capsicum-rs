@@ -30,16 +30,15 @@
 //! ## Limit capability rights to files
 //!
 //! ```
-//! use capsicum::{CapRights, Right, RightsBuilder};
+//! use capsicum::{CapRights, Right, FileRights};
 //! use std::fs::File;
 //! use std::io::Read;
 //! let mut ok_file = File::open("/etc/passwd").unwrap();
 //! let mut s = String::new();
 //!
-//! RightsBuilder::new()
+//! FileRights::new()
 //!     .allow(Right::Seek)
 //!     .allow(Right::Read)
-//!     .finalize()
 //!     .limit(&ok_file).unwrap();
 //!
 //! assert!(ok_file.read_to_string(&mut s).is_ok());
@@ -76,9 +75,13 @@ mod right;
 /// Deprecated utilities
 pub mod util;
 
-pub use fcntl::{Fcntl, FcntlRights, FcntlsBuilder};
+#[allow(deprecated)]
+pub use fcntl::FcntlsBuilder;
+pub use fcntl::{Fcntl, FcntlRights};
 pub use ioctl::{IoctlRights, IoctlsBuilder};
 pub use process::{enter, get_mode, sandboxed};
-pub use right::{FileRights, Right, RightsBuilder};
+#[allow(deprecated)]
+pub use right::RightsBuilder;
+pub use right::{FileRights, Right};
 
 pub use crate::common::CapRights;
