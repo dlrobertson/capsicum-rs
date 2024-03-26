@@ -27,12 +27,10 @@ mod base {
         CapRights,
         Fcntl,
         FcntlRights,
-        FcntlsBuilder,
         FileRights,
         IoctlRights,
         IoctlsBuilder,
         Right,
-        RightsBuilder,
     };
     use nix::{
         sys::wait::{waitpid, WaitStatus},
@@ -51,15 +49,17 @@ mod base {
     fn test_rights() {
         let mut file = NamedTempFile::new().unwrap();
 
-        let mut rights = RightsBuilder::new().allow(Right::Null).finalize();
+        let mut rights = FileRights::new();
+        rights.allow(Right::Null);
 
-        let to_merge = RightsBuilder::new().allow(Right::Write).finalize();
+        let mut to_merge = FileRights::new();
+        to_merge.allow(Right::Write);
 
         rights.merge(&to_merge).unwrap();
 
-        rights.allow(Right::Read).unwrap();
+        rights.allow(Right::Read);
 
-        rights.deny(Right::Write).unwrap();
+        rights.deny(Right::Write);
 
         assert!(rights.is_set(Right::Read));
 
@@ -134,10 +134,9 @@ mod base {
     #[test]
     fn test_fcntl() {
         let file = tempfile().unwrap();
-        let fcntls = FcntlsBuilder::new()
-            .allow(Fcntl::GetFL)
-            .allow(Fcntl::GetOwn)
-            .finalize();
+        let mut fcntls = FcntlRights::new();
+        fcntls.allow(Fcntl::GetFL);
+        fcntls.allow(Fcntl::GetOwn);
         fcntls.limit(&file).unwrap();
         let new_fcntls = FcntlRights::from_file(&file).unwrap();
         assert_eq!(new_fcntls, fcntls);
@@ -147,7 +146,7 @@ mod base {
 mod util {
     use std::fs;
 
-    use capsicum::{CapRights, Right, RightsBuilder};
+    use capsicum::{CapRights, FileRights, Right};
     use nix::{
         sys::wait::{waitpid, WaitStatus},
         unistd::{fork, ForkResult},
@@ -164,11 +163,11 @@ mod util {
         let dir = capsicum::util::Directory::new(tdir.path()).unwrap();
         let fname = "foo";
         fs::File::create(tdir.path().join(fname)).unwrap();
-        let rights = RightsBuilder::new()
+        FileRights::new()
             .allow(Right::Read)
             .allow(Right::Lookup)
-            .finalize();
-        rights.limit(&dir).unwrap();
+            .limit(&dir)
+            .unwrap();
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
                 always_abort();
@@ -191,8 +190,7 @@ mod util {
         let dir = capsicum::util::Directory::new(tdir.path()).unwrap();
         let fname = "foo";
         fs::File::create(tdir.path().join(fname)).unwrap();
-        let rights = RightsBuilder::new().add(Right::Read).finalize();
-        rights.limit(&dir).unwrap();
+        FileRights::new().allow(Right::Read).limit(&dir).unwrap();
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
                 always_abort();

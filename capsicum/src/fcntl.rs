@@ -31,36 +31,23 @@ pub enum Fcntl {
 /// # Example
 /// ```
 /// # use capsicum::{Fcntl, FcntlsBuilder};
-/// let rights = FcntlsBuilder::new()
-///     .allow(Fcntl::GetFL)
-///     .allow(Fcntl::SetFL)
+/// let rights = FcntlsBuilder::new(Fcntl::GetFL)
+///     .add(Fcntl::SetFL)
 ///     .finalize();
 /// ```
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
+#[deprecated(since = "0.4.0", note = "Use FcntlRights directly")]
 pub struct FcntlsBuilder(u32);
 
+#[allow(deprecated)]
 impl FcntlsBuilder {
-    /// Initialize a new `FcntlsBuilder` which will deny all rights.
-    pub fn new() -> FcntlsBuilder {
-        FcntlsBuilder::default()
+    #[allow(missing_docs)]
+    pub fn new(right: Fcntl) -> FcntlsBuilder {
+        FcntlsBuilder(right as u32)
     }
 
     #[allow(missing_docs)]
-    #[deprecated(since = "0.4.0", note = "use FcntlsBuilder::allow instead")]
     pub fn add(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
-        self.allow(right)
-    }
-
-    /// Allow an additional fcntl
-    ///
-    /// # Examples
-    /// ```
-    /// # use capsicum::{Fcntl, FcntlsBuilder};
-    ///
-    /// let mut builder = FcntlsBuilder::new();
-    /// builder.allow(Fcntl::GetFL);
-    /// ```
-    pub fn allow(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
         self.0 |= right as u32;
         self
     }
@@ -80,23 +67,7 @@ impl FcntlsBuilder {
     }
 
     #[allow(missing_docs)]
-    #[deprecated(since = "0.4.0", note = "use FcntlsBuilder::deny instead")]
     pub fn remove(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
-        self.deny(right)
-    }
-
-    /// Remove an allowed fcntl from the builder's list.
-    ///
-    /// # Example
-    /// ```
-    /// # use capsicum::{Fcntl, FcntlsBuilder};
-    /// let mut common_builder = FcntlsBuilder::new();
-    /// common_builder.allow(Fcntl::GetFL);
-    /// common_builder.allow(Fcntl::SetFL);
-    /// let mut restricted_builder = common_builder.clone();
-    /// restricted_builder.deny(Fcntl::SetFL);
-    /// ```
-    pub fn deny(&mut self, right: Fcntl) -> &mut FcntlsBuilder {
         self.0 &= !(right as u32);
         self
     }
@@ -112,16 +83,15 @@ impl FcntlsBuilder {
 /// # Example
 /// ```
 /// # use std::os::unix::io::AsRawFd;
-/// # use capsicum::{CapRights, FcntlsBuilder, Fcntl};
+/// # use capsicum::{CapRights, FcntlRights, Fcntl};
 /// # use tempfile::tempfile;
 /// use nix::errno::Errno;
 /// use nix::fcntl::{FcntlArg, OFlag, fcntl};
 /// let file = tempfile().unwrap();
-/// let rights = FcntlsBuilder::new()
+/// FcntlRights::new()
 ///     .allow(Fcntl::GetFL)
-///     .finalize();
-///
-/// rights.limit(&file).unwrap();
+///     .limit(&file)
+///     .unwrap();
 ///
 /// capsicum::enter().unwrap();
 ///
@@ -130,28 +100,56 @@ impl FcntlsBuilder {
 /// let r = fcntl(file.as_raw_fd(), FcntlArg::F_SETFL(OFlag::O_CLOEXEC));
 /// assert_eq!(r, Err(Errno::ENOTCAPABLE));
 /// ```
-#[derive(Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct FcntlRights(u32);
 
 impl FcntlRights {
-    #[allow(missing_docs)]
-    #[deprecated(since = "0.4.0", note = "use FcntlsBuilder insted")]
-    pub fn new(right: u32) -> FcntlRights {
-        FcntlRights(right)
+    /// Initialize a new `FcntlsRights` which will deny all rights.
+    pub fn new() -> FcntlRights {
+        FcntlRights::default()
+    }
+
+    /// Allow an additional fcntl
+    ///
+    /// # Examples
+    /// ```
+    /// # use capsicum::{Fcntl, FcntlRights};
+    ///
+    /// let mut rights = FcntlRights::new();
+    /// rights.allow(Fcntl::GetFL);
+    /// ```
+    pub fn allow(&mut self, right: Fcntl) -> &mut Self {
+        self.0 |= right as u32;
+        self
+    }
+
+    /// Remove an allowed fcntl from the list.
+    ///
+    /// # Example
+    /// ```
+    /// # use capsicum::{Fcntl, FcntlRights};
+    /// let mut common = FcntlRights::new();
+    /// common.allow(Fcntl::GetFL);
+    /// common.allow(Fcntl::SetFL);
+    /// let mut restricted = common.clone();
+    /// restricted.deny(Fcntl::SetFL);
+    /// ```
+    pub fn deny(&mut self, right: Fcntl) -> &mut Self {
+        self.0 &= !(right as u32);
+        self
     }
 
     /// Retrieve the list of fcntl rights currently allowed for the given file.
     /// # Example
     /// ```
     /// # use std::os::unix::io::AsRawFd;
-    /// # use capsicum::{CapRights, FcntlsBuilder, Fcntl, FcntlRights};
+    /// # use capsicum::{CapRights, Fcntl, FcntlRights};
     /// # use tempfile::tempfile;
     /// use nix::errno::Errno;
     /// use nix::fcntl::{FcntlArg, OFlag, fcntl};
     /// let file = tempfile().unwrap();
-    /// let rights = FcntlsBuilder::new()
-    ///     .allow(Fcntl::GetFL)
-    ///     .finalize();
+    /// let mut rights = FcntlRights::new();
+    /// rights.allow(Fcntl::GetFL);
     ///
     /// rights.limit(&file).unwrap();
     /// let rights2 = FcntlRights::from_file(&file).unwrap();
