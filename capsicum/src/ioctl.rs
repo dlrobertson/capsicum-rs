@@ -8,7 +8,7 @@ use libc::u_long;
 
 use crate::common::CapRights;
 
-const CAP_IOCTLS_ALL: isize = isize::max_value();
+const CAP_IOCTLS_ALL: isize = isize::MAX;
 
 /// Used to construct a new set of allowed ioctl commands.
 ///

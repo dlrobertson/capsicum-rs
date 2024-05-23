@@ -260,7 +260,7 @@ mod macros {
     ///               macro will create the struct.
     /// * `meth` - The name of the accessor that will be added to `Casper`.
     /// * `flags`   - Optional service flags of type
-    /// [`ServiceRegisterFlags`](super::ServiceRegisterFlags).
+    ///    [`ServiceRegisterFlags`](super::ServiceRegisterFlags).
     ///
     /// # Examples
     /// ```
