@@ -4,13 +4,12 @@
 use std::{ffi::CStr, io};
 
 use capsicum::casper::{self, Casper, NvError, NvFlag, NvList, ServiceRegisterFlags};
-use cstr::cstr;
 use libc::uid_t;
 
 /// The Capser `uid` helper process.
 struct CapUid {}
 impl casper::Service for CapUid {
-    const SERVICE_NAME: &'static CStr = cstr!("getuid");
+    const SERVICE_NAME: &'static CStr = c"getuid";
 
     fn cmd(
         cmd: &str,
@@ -27,7 +26,7 @@ impl casper::Service for CapUid {
 
         // This C function is always safe
         let uid = unsafe { libc::getuid() };
-        nvout.insert_number(cstr!("uid"), uid).unwrap();
+        nvout.insert_number(c"uid", uid).unwrap();
         Ok(())
     }
 
@@ -48,9 +47,9 @@ impl CapAgent {
     // `getuid` works fine in capability mode, but it's a nice simple demo.
     pub fn uid(&mut self) -> io::Result<uid_t> {
         let mut invl = NvList::new(NvFlag::None).unwrap();
-        invl.insert_string(cstr!("cmd"), cstr!("getuid")).unwrap();
+        invl.insert_string(c"cmd", c"getuid").unwrap();
         let onvl = self.xfer_nvlist(invl)?;
-        match onvl.get_number(cstr!("uid")) {
+        match onvl.get_number(c"uid") {
             Ok(Some(uid)) => Ok(uid as uid_t),
             Ok(None) => panic!("zygote did not return the expected value"),
             Err(NvError::NativeError(e)) => Err(io::Error::from_raw_os_error(e)),
