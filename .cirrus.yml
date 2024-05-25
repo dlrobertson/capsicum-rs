@@ -78,4 +78,8 @@ lint_task:
     # install ca_root_nss due to https://github.com/rustsec/rustsec/issues/1137
     - pkg install -y ca_root_nss cargo-audit
     - cargo audit
+  minver_script:
+    - . $HOME/.cargo/env
+    - cargo update -Zdirect-minimal-versions
+    - cargo check --all-features --all-targets --all
   before_cache_script: rm -rf $CARGO_HOME/registry/index
