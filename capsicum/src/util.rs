@@ -7,9 +7,12 @@ use std::{
     ffi::CString,
     fs::File,
     io::{self, ErrorKind},
-    os::unix::{
-        ffi::OsStrExt,
-        io::{AsRawFd, FromRawFd, RawFd},
+    os::{
+        fd::{AsFd, BorrowedFd},
+        unix::{
+            ffi::OsStrExt,
+            io::{AsRawFd, FromRawFd, RawFd},
+        },
     },
     path::Path,
 };
@@ -86,6 +89,12 @@ impl FromRawFd for Directory {
         Directory {
             file: File::from_raw_fd(fd),
         }
+    }
+}
+
+impl AsFd for Directory {
+    fn as_fd(&self) -> BorrowedFd<'_> {
+        self.file.as_fd()
     }
 }
 

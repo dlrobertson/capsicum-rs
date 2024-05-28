@@ -16,6 +16,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - Implemented `Send` and `Sync` for `CapChannel`.
   ([#66](https://github.com/dlrobertson/capsicum-rs/pull/66))
 
+- `util::Directory` now implements `AsFd`.
+  ([#98](https://github.com/dlrobertson/capsicum-rs/pull/98))
+
 ### Changed
 
 - The `Casper::service_open` function (usually called via the `service!` and
@@ -50,6 +53,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 - `Rights` are now `Clone`, `Copy`, and `Eq`.
   ([#80](https://github.com/dlrobertson/capsicum-rs/pull/80))
+
+- `CapRights::limit`, `FcntlRights::from_file`, `IoctlRights::from_file`, and
+  `FileRights::from_file` now take `AsFd` arguments instead of `AsRawFd`.
+  ([#98](https://github.com/dlrobertson/capsicum-rs/pull/98))
 
 ### Fixed
 
