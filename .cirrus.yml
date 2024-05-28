@@ -6,8 +6,7 @@ setup: &SETUP
   setup_script:
     - pkg install -y llvm
     - fetch https://sh.rustup.rs -o rustup.sh
-    - sh rustup.sh -y --profile=minimal
-    - $HOME/.cargo/bin/rustup toolchain install $VERSION
+    - sh rustup.sh -y --profile=minimal --default-toolchain $VERSION
 
 task:
   env:
@@ -41,14 +40,14 @@ task:
     fingerprint_script: cat Cargo.lock || echo ""
   test_script:
     - . $HOME/.cargo/env
-    - cargo +$VERSION test --target $TARGET
+    - cargo test --target $TARGET
   casper_test_script:
     - . $HOME/.cargo/env
-    - cargo +$VERSION test --target $TARGET --all-features
-    - cargo +$VERSION run --all-features --example getuid
+    - cargo test --target $TARGET --all-features
+    - cargo run --all-features --example getuid
   doc_script:
     - . $HOME/.cargo/env
-    - cargo +$VERSION doc --target $TARGET --no-deps --all-features
+    - cargo doc --target $TARGET --no-deps --all-features
   before_cache_script: rm -rf $HOME/.cargo/registry/index 
 
 # Stuff that doesn't need to be repeated for each target, env, and toolchain
@@ -68,11 +67,11 @@ lint_task:
     folder: $HOME/.cargo/registry
   clippy_script:
     - . $HOME/.cargo/env
-    - cargo +$VERSION clippy --all-targets -- -D warnings
-    - cargo +$VERSION clippy --all-targets --all-features -- -D warnings
+    - cargo clippy --all-targets -- -D warnings
+    - cargo clippy --all-targets --all-features -- -D warnings
   fmt_script:
     - . $HOME/.cargo/env
-    - cargo +$VERSION fmt --all -- --check --color=never
+    - cargo fmt --all -- --check --color=never
   audit_script:
     - . $HOME/.cargo/env
     # install ca_root_nss due to https://github.com/rustsec/rustsec/issues/1137
