@@ -158,11 +158,10 @@ mod macros {
     /// # Examples
     /// ```
     /// use capsicum::casper;
-    /// use cstr::cstr;
     ///
     /// casper::service_connection!(
     ///     pub CapGroupAgent,
-    ///     cstr!("system.grp"),
+    ///     c"system.grp",
     ///     group
     /// );
     /// ```
@@ -267,11 +266,10 @@ mod macros {
     /// # use std::{ffi::CStr, io};
     /// # use libnv::libnv::NvList;
     /// use capsicum::casper;
-    /// use cstr::cstr;
     ///
     /// struct CapUid {}
     /// impl casper::Service for CapUid {
-    /// # const SERVICE_NAME: &'static CStr = cstr!("getuid");
+    /// # const SERVICE_NAME: &'static CStr = c"getuid";
     /// # fn cmd(_: &str, _: Option<&NvList>, _: Option<&mut NvList>, _: &mut NvList) -> io::Result<()> {
     /// # unimplemented!()
     /// # }
