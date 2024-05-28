@@ -24,26 +24,25 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - Renamed `Right::Renameat` to `Right::RenameatSource`.
   ([#85](https://github.com/dlrobertson/capsicum-rs/pull/85))
 
-- The `IoctlsBuilder` and `FcntlsBuilder` APIs have the following changes:
-  * They are both now `Clone`.
-  * Their `new` methods no longer take arguments.  The value formerly supplied
-    as an argument must now be supplied by the `add` methods.
+- The `IoctlsBuilder`, `FcntlsBuilder`, and `RightsBuilder` structs have been
+  heavily changed:
+  * `FcntlsBuilder` and `RightsBuilder` are deprecated.  You may now use
+    `FcntlRights` and `FileRights` directly.
+  * Unlike the builder structs old `new` methods, `FcntlRights`'s and
+    `FileRights`'s new methods take no arguments.  The values formerly supplied
+    as arguments to `new` must now be provided to the `allow` methods.
+  * `FcntlRights` and `FileRights` are now `Copy` and `Clone`.
+  * `IoctlsBuilder` is now `Clone`.
   * `IoctlsBuilder`'s methods now pass by move.
-  * The `IoctlsBuilder::raw`, `FcntlsBuilder::raw`, `IoctlRights::new`, and
-    `FcntlRights::new` methods are all deprecated.
-  * Their `add` and `remove` methods have been renamed to `allow`/`deny`,
-    respectively.
+  * `IoctlsBuilder::raw` and `IoctlRights::new` methods are deprecated.
+  * `IoctlsBuilder`'s `add` and `remove` methods have been renamed to
+    `allow`/`deny`, respectively.  Similarly named methods are added to
+    `FileRights` and `FcntlRights`.  `FileRights`'s `set`/`clear` methods are
+    similarly deprecated.
   ([#71](https://github.com/dlrobertson/capsicum-rs/pull/71))
+  ([#88](https://github.com/dlrobertson/capsicum-rs/pull/88))
 
-- The `RightsBuilder`'s `add`/`remove` methods have been renamed to
-  `allow`/`deny`, respectively.  Also, `FileRights`'s `set`/`clear` methods
-  have been renamed to `allow`/`deny`.
-  ([#71](https://github.com/dlrobertson/capsicum-rs/pull/71))
-
-- More changes to `RightsBuilder`.
-  * The `new` method no longer takes an argument.
-  * `Rights` are now `Clone`, `Copy`, and `Eq`.
-  * `RightsBuilder` is now `Clone`.
+- `Rights` are now `Clone`, `Copy`, and `Eq`.
   ([#80](https://github.com/dlrobertson/capsicum-rs/pull/80))
 
 ### Fixed
@@ -54,11 +53,11 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
-- `RightsBuilder::raw` is removed and `FileRights::new` is deprecated.
+- `RightsBuilder::raw` is removed.
   ([#80](https://github.com/dlrobertson/capsicum-rs/pull/80))
 
 - `FileRights::is_valid` is deprecated, because it is no longer useful without
-  `FileRights::new`.
+  the new argument-less `FileRights::new`.
   ([#81](https://github.com/dlrobertson/capsicum-rs/pull/81))
 
 - `util::Directory` is deprecated.  Use the `cap-std` crate instead.

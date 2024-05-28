@@ -25,20 +25,17 @@ use libc::{c_int, c_uint, mode_t, openat};
 /// # Examples
 ///
 /// ```
-/// use capsicum::{self, CapRights, Right, RightsBuilder};
+/// use capsicum::{self, CapRights, Right, FileRights};
 /// use capsicum::util::Directory;
 ///
 /// // Open the directory
 /// let dir = Directory::new("./src").unwrap();
 ///
-/// // Create the set of capabilities
-/// let rights = RightsBuilder::new()
+/// // Limit the capabilities of the open directory
+/// FileRights::new()
 ///     .allow(Right::Read)
 ///     .allow(Right::Lookup)
-///     .finalize();
-///
-/// // Limit the capabilities
-/// rights.limit(&dir).unwrap();
+///     .limit(&dir).unwrap();
 ///
 /// // Enter the sandbox
 /// capsicum::enter().unwrap();
