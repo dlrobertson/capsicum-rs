@@ -26,9 +26,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 - The `IoctlsBuilder`, `FcntlsBuilder`, and `RightsBuilder` structs have been
   heavily changed:
-  * `FcntlsBuilder` and `RightsBuilder` are deprecated.  You may now use
+  * `FcntlsBuilder` and `RightsBuilder` are deprecated.  You should now use
     `FcntlRights` and `FileRights` directly.
-  * Unlike the builder structs old `new` methods, `FcntlRights`'s and
+  * Unlike the builder structs' old `new` methods, `FcntlRights`'s and
     `FileRights`'s new methods take no arguments.  The values formerly supplied
     as arguments to `new` must now be provided to the `allow` methods.
   * `FcntlRights` and `FileRights` are now `Copy` and `Clone`.
@@ -56,7 +56,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - `RightsBuilder::raw` is removed.
   ([#80](https://github.com/dlrobertson/capsicum-rs/pull/80))
 
-- `FileRights::is_valid` is deprecated, because it is no longer useful without
+- `FileRights::is_valid` is deprecated, because it is no longer useful with
   the new argument-less `FileRights::new`.
   ([#81](https://github.com/dlrobertson/capsicum-rs/pull/81))
 
