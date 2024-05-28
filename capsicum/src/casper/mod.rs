@@ -8,9 +8,9 @@
 //! capability mode.  Because each Casper process strictly validates each request, the potential
 //! harm from a compromised main process is limited, just as with Capsicum.
 //!
-//! The base libcasper provides no services of its own.  In Rust, the starting pointo use Casper is
-//! [`service!`] (to create a custom service in Rust), or [`service_connection!`] (to connect to an
-//! existing service).
+//! The base libcasper provides no services of its own.  In Rust, the starting point to use Casper
+//! is [`service!`] (to create a custom service in Rust), or [`service_connection!`] (to connect to
+//! an existing service).
 //!
 //! # See Also
 //! * [libcasper(3)](https://www.freebsd.org/cgi/man.cgi?query=libcasper)
