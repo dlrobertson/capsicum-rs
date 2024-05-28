@@ -43,6 +43,6 @@ version_check = "0.9.4"
 
 [dev-dependencies]
 cap-std = "3.0"
-nix = { version = "0.27.0", default-features = false, features = [ "fs", "ioctl", "process", "socket" ] }
+nix = { version = ">=0.27.0,<0.30.0", default-features = false, features = [ "fs", "ioctl", "process", "socket" ] }
 libnv-sys = "0.2.1"
 tempfile = "3.0"

@@ -291,8 +291,6 @@ impl FileRights {
     /// # use std::os::unix::io::AsRawFd;
     /// # use capsicum::{CapRights, FileRights, Right};
     /// # use tempfile::tempfile;
-    /// use nix::errno::Errno;
-    /// use nix::fcntl::{FcntlArg, OFlag, fcntl};
     /// let file = tempfile().unwrap();
     /// let mut rights = FileRights::new();
     /// rights.allow(Right::Read);
