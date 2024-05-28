@@ -6,7 +6,7 @@ use std::{ffi::CStr, io};
 use capsicum::casper::{self, Casper, NvError, NvFlag, NvList, ServiceRegisterFlags};
 use libc::uid_t;
 
-/// The Capser `uid` helper process.
+/// The Casper `uid` helper process.
 struct CapUid {}
 impl casper::Service for CapUid {
     const SERVICE_NAME: &'static CStr = c"getuid";
