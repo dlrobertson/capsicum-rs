@@ -17,7 +17,7 @@ task:
   matrix:
     - name: FreeBSD 13 amd64 nightly
       freebsd_instance:
-        image: freebsd-13-2-release-amd64
+        image: freebsd-13-3-release-amd64
     - name: FreeBSD 14 amd64 nightly
       freebsd_instance:
         image: freebsd-14-0-release-amd64-ufs
@@ -75,6 +75,7 @@ lint_task:
     - cargo +$VERSION fmt --all -- --check --color=never
   audit_script:
     - . $HOME/.cargo/env
-    - cargo install --version=0.17.6 cargo-audit
+    # install ca_root_nss due to https://github.com/rustsec/rustsec/issues/1137
+    - pkg install -y ca_root_nss cargo-audit
     - cargo audit
   before_cache_script: rm -rf $CARGO_HOME/registry/index
