@@ -77,7 +77,7 @@ pub enum Right {
     Fstatfs = cap_right!(0, 0x100000u64),
     Futimes = cap_right!(0, 0x200000u64),
     Futimesat = right_or!(Right::Futimes, Right::Lookup),
-    Linkat = right_or!(Right::Lookup, 0x400000u64),
+    LinkatTarget = right_or!(Right::Lookup, 0x400000u64),
     Mkdirat = right_or!(Right::Lookup, 0x800000u64),
     Mkfifoat = right_or!(Right::Lookup, 0x1000000u64),
     Mknotat = right_or!(Right::Lookup, 0x2000000u64),
@@ -97,6 +97,7 @@ pub enum Right {
     Shutdown = cap_right!(0, 0x4000000000u64),
     Bindat = right_or!(Right::Lookup, 0x8000000000u64),
     Connectat = right_or!(Right::Lookup, 0x10000000000u64),
+    LinkatSource = right_or!(Right::Lookup, 0x0000020000000000u64),
     SockClient = right_or!(
         Right::Connect,
         Right::Getpeername,
@@ -152,6 +153,10 @@ pub enum Right {
 }
 
 impl Right {
+    #[allow(non_upper_case_globals)]
+    #[allow(missing_docs)]
+    #[deprecated(since = "0.4.0", note = "Use Right::LinkatTarget instead")]
+    pub const Linkat: Right = Right::LinkatTarget;
     #[allow(non_upper_case_globals)]
     #[allow(missing_docs)]
     #[deprecated(since = "0.4.0", note = "Use Right::RenameatSource instead")]
