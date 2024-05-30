@@ -16,6 +16,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - Implemented `Send` and `Sync` for `CapChannel`.
   ([#66](https://github.com/dlrobertson/capsicum-rs/pull/66))
 
+- The `Casper::service_open` function (usually called via the `service!` and
+  `service_open!` macros) now require a mutable `&mut Casper` argument.  So
+  does `Casper::try_clone`.  This isn't technically a bug "fix" because in the
+  previous release it was impossible to trigger the bug.
+  ([#82](https://github.com/dlrobertson/capsicum-rs/pull/82))
+
 ### Changed
 
 - Renamed `Right::Linkat` to `Right::LinkatTarget`.
