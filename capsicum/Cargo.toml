@@ -1,7 +1,7 @@
 [package]
 name = "capsicum"
 edition = "2021"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Dan Robertson <dan@dlrobertson.com>"]
 license = "MPL-2.0"
 repository = "https://github.com/dlrobertson/capsicum-rs"
