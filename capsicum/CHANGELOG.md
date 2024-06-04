@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - ReleaseDate
+
+### Fixed
+
+- Fixed cross-compiling the docs.
+  ([#103](https://github.com/dlrobertson/capsicum-rs/pull/103))
+
 ## [0.4.1] - 2024-06-04
 
 ### Fixed

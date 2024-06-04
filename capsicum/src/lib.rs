@@ -64,6 +64,8 @@
 //!  // But we can still open children of our already-open directory
 //!  let passwd = etc.open("passwd").unwrap();
 //! ```
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 #[cfg(feature = "casper")]
 #[cfg_attr(docsrs, doc(cfg(feature = "casper")))]
 pub mod casper;
