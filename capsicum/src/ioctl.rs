@@ -2,7 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{io, os::unix::io::AsRawFd};
+use std::{
+    io,
+    os::{fd::AsFd, unix::io::AsRawFd},
+};
 
 use libc::u_long;
 
@@ -166,10 +169,11 @@ impl IoctlRights {
     /// - `Ok(IoctlRights::Limited([]))`:    No ioctl commands are allowed
     /// - `Ok(IoctlRights::Limited([...]))`: Only these ioctl commands are allowed.
     /// - `Err(_)`:           Retrieving the list failed.
-    pub fn from_file<T: AsRawFd>(fd: &T, len: usize) -> io::Result<IoctlRights> {
+    pub fn from_file<F: AsFd>(f: &F, len: usize) -> io::Result<IoctlRights> {
         let mut cmds = Vec::with_capacity(len);
+        let fd = f.as_fd().as_raw_fd();
         unsafe {
-            let res = libc::cap_ioctls_get(fd.as_raw_fd(), cmds.as_mut_ptr(), len);
+            let res = libc::cap_ioctls_get(fd, cmds.as_mut_ptr(), len);
             if res == CAP_IOCTLS_ALL {
                 Ok(IoctlRights::Unlimited)
             } else if let Ok(rlen) = usize::try_from(res) {
@@ -187,11 +191,12 @@ impl IoctlRights {
 }
 
 impl CapRights for IoctlRights {
-    fn limit<T: AsRawFd>(&self, fd: &T) -> io::Result<()> {
+    fn limit<F: AsFd>(&self, f: &F) -> io::Result<()> {
         if let IoctlRights::Limited(v) = self {
             let len = v.len();
+            let fd = f.as_fd().as_raw_fd();
             unsafe {
-                if libc::cap_ioctls_limit(fd.as_raw_fd(), v.as_ptr(), len) < 0 {
+                if libc::cap_ioctls_limit(fd, v.as_ptr(), len) < 0 {
                     return Err(io::Error::last_os_error());
                 }
             }

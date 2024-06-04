@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{io, os::unix::io::AsRawFd};
+use std::{io, os::unix::io::AsFd};
 
 /// A set of capabilities that may be restricted on file descriptors.
 pub trait CapRights: Sized {
@@ -10,5 +10,5 @@ pub trait CapRights: Sized {
     ///
     /// When a file descriptor is first created, it is assigned all possible capability rights.
     /// Those rights may be reduced (but never expanded), by this method.
-    fn limit<T: AsRawFd>(&self, fd: &T) -> io::Result<()>;
+    fn limit<F: AsFd>(&self, f: &F) -> io::Result<()>;
 }

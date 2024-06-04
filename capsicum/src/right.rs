@@ -11,6 +11,7 @@ use std::{
     mem,
     ops::BitAnd,
     os::{
+        fd::AsFd,
         raw::c_char,
         unix::io::{AsRawFd, RawFd},
     },
@@ -247,7 +248,6 @@ impl Default for RightsBuilder {
 ///
 /// # Example
 /// ```
-/// # use std::os::unix::io::AsRawFd;
 /// # use std::io::{self, Read, Write};
 /// # use capsicum::{CapRights, FileRights, Right};
 /// # use tempfile::tempfile;
@@ -288,11 +288,8 @@ impl FileRights {
     /// Retrieve the list of rights currently allowed for the given file.
     /// # Example
     /// ```
-    /// # use std::os::unix::io::AsRawFd;
     /// # use capsicum::{CapRights, FileRights, Right};
     /// # use tempfile::tempfile;
-    /// use nix::errno::Errno;
-    /// use nix::fcntl::{FcntlArg, OFlag, fcntl};
     /// let file = tempfile().unwrap();
     /// let mut rights = FileRights::new();
     /// rights.allow(Right::Read);
@@ -304,14 +301,12 @@ impl FileRights {
     ///
     /// # See Also
     /// [`cap_rights_get(3)`](https://www.freebsd.org/cgi/man.cgi?query=cap_rights_get)
-    pub fn from_file<T: AsRawFd>(fd: &T) -> io::Result<FileRights> {
+    pub fn from_file<F: AsFd>(f: &F) -> io::Result<FileRights> {
+        let fd = f.as_fd().as_raw_fd();
         let inner_rights = unsafe {
             let mut inner_rights = unsafe { mem::zeroed() };
-            let res = libc::__cap_rights_get(
-                RIGHTS_VERSION,
-                fd.as_raw_fd(),
-                &mut inner_rights as *mut cap_rights_t,
-            );
+            let res =
+                libc::__cap_rights_get(RIGHTS_VERSION, fd, &mut inner_rights as *mut cap_rights_t);
             if res < 0 {
                 return Err(io::Error::last_os_error());
             }
@@ -428,9 +423,10 @@ impl Default for FileRights {
 }
 
 impl CapRights for FileRights {
-    fn limit<T: AsRawFd>(&self, fd: &T) -> io::Result<()> {
+    fn limit<F: AsFd>(&self, f: &F) -> io::Result<()> {
+        let fd = f.as_fd().as_raw_fd();
         unsafe {
-            let res = libc::cap_rights_limit(fd.as_raw_fd(), &self.0 as *const cap_rights_t);
+            let res = libc::cap_rights_limit(fd, &self.0 as *const cap_rights_t);
             if res < 0 {
                 Err(io::Error::last_os_error())
             } else {

@@ -2,7 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{io, os::unix::io::AsRawFd};
+use std::{
+    io,
+    os::{fd::AsFd, unix::io::AsRawFd},
+};
 
 use crate::common::CapRights;
 
@@ -142,7 +145,6 @@ impl FcntlRights {
     /// Retrieve the list of fcntl rights currently allowed for the given file.
     /// # Example
     /// ```
-    /// # use std::os::unix::io::AsRawFd;
     /// # use capsicum::{CapRights, Fcntl, FcntlRights};
     /// # use tempfile::tempfile;
     /// use nix::errno::Errno;
@@ -158,10 +160,11 @@ impl FcntlRights {
     ///
     /// # See Also
     /// [`cap_fcntls_get(2)`](https://www.freebsd.org/cgi/man.cgi?query=cap_fcntls_get)
-    pub fn from_file<T: AsRawFd>(fd: &T) -> io::Result<FcntlRights> {
+    pub fn from_file<F: AsFd>(f: &F) -> io::Result<FcntlRights> {
         unsafe {
             let mut empty_fcntls = 0;
-            let res = libc::cap_fcntls_get(fd.as_raw_fd(), &mut empty_fcntls as *mut u32);
+            let fd = f.as_fd().as_raw_fd();
+            let res = libc::cap_fcntls_get(fd, &mut empty_fcntls as *mut u32);
             if res < 0 {
                 Err(io::Error::last_os_error())
             } else {
@@ -172,9 +175,9 @@ impl FcntlRights {
 }
 
 impl CapRights for FcntlRights {
-    fn limit<T: AsRawFd>(&self, fd: &T) -> io::Result<()> {
+    fn limit<F: AsFd>(&self, fd: &F) -> io::Result<()> {
         unsafe {
-            if libc::cap_fcntls_limit(fd.as_raw_fd(), self.0) < 0 {
+            if libc::cap_fcntls_limit(fd.as_fd().as_raw_fd(), self.0) < 0 {
                 Err(io::Error::last_os_error())
             } else {
                 Ok(())
