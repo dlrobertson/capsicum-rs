@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - ReleaseDate
+
+### Fixed
+
+- Fixed the build with Rust 1.77.0, by working around Rust bug 13807
+  ([#101](https://github.com/dlrobertson/capsicum-rs/pull/101))
+
 ## [0.4.0] - 2024-06-04
 
 ### Added
