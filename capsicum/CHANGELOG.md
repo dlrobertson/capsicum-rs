@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - ReleaseDAte
+
+### Removed
+
+- Removed the `libnv` and `libnv-sys` crate features.  Those were accidental
+  and never intended to be exposed.  They are merely implementation details of
+  the `casper` feature. 
+  ([#107](https://github.com/dlrobertson/capsicum-rs/pull/107))
+
 ## [0.4.2] - 2024-06-04
 
 ### Fixed

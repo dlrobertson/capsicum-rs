@@ -24,7 +24,7 @@ targets = [
 ]
 
 [features]
-casper = [ "casper-sys", "libnv", "libnv-sys" ]
+casper = [ "casper-sys", "dep:libnv", "dep:libnv-sys" ]
 
 [[example]]
 name = "getuid"
