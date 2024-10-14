@@ -33,7 +33,7 @@ path = "examples/getuid.rs"
 
 [dependencies]
 libc = { version = "0.2.156", features = [ "extra_traits" ] }
-casper-sys = { path = "../casper-sys", optional = true, version = "0.1.1" }
+casper-sys = { path = "../casper-sys", optional = true, version = "0.1.2" }
 libnv = { version = "0.4.2", default-features = false, features = [ "libnv" ], optional = true }
 libnv-sys = { version = "0.2.1", optional = true }
 ctor = "0.2.3"
