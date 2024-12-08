@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - ReleaseDate
+
+### Removed
+
+- Deprecated the `Right::CAP_ALL*` and `Right::CAP_UNUSED*` constants, because
+  they aren't stable across different OS versions, and they probably never had
+  any legitimate use in our consumers anyway.
+  ([#109](https://github.com/dlrobertson/capsicum-rs/pull/109))
+
 ## [0.4.3] - 2024-10-14
 
 ### Fixed

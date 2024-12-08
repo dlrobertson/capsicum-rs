@@ -87,8 +87,14 @@ pub enum Right {
     LinkatSource = libc::CAP_LINKAT_SOURCE,
     SockClient = libc::CAP_SOCK_CLIENT,
     SockServer = libc::CAP_SOCK_SERVER,
+    #[deprecated(since = "0.4.4", note = "May change in later OS versions")]
+    #[allow(deprecated)]
     All0 = libc::CAP_ALL0,
+    #[deprecated(since = "0.4.4", note = "May disappear in later OS versions")]
+    #[allow(deprecated)]
     Unused044 = libc::CAP_UNUSED0_44,
+    #[deprecated(since = "0.4.4", note = "May disappear in later OS versions")]
+    #[allow(deprecated)]
     Unused057 = libc::CAP_UNUSED0_57,
     MacGet = libc::CAP_MAC_GET,
     MacSet = libc::CAP_MAC_SET,
@@ -112,8 +118,14 @@ pub enum Right {
     AclSet = libc::CAP_ACL_SET,
     KqueueChange = libc::CAP_KQUEUE_CHANGE,
     Kqueue = libc::CAP_KQUEUE,
+    #[deprecated(since = "0.4.4", note = "May change in later OS versions")]
+    #[allow(deprecated)]
     All1 = libc::CAP_ALL1,
+    #[deprecated(since = "0.4.4", note = "May disappear in later OS versions")]
+    #[allow(deprecated)]
     Unused122 = libc::CAP_UNUSED1_22,
+    #[deprecated(since = "0.4.4", note = "May disappear in later OS versions")]
+    #[allow(deprecated)]
     Unused157 = libc::CAP_UNUSED1_57,
 }
 
