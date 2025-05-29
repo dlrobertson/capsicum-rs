@@ -2,6 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #![warn(missing_docs)]
+// This lint is unhelpful.  See
+// https://github.com/rust-lang/rust-clippy/discussions/14256
+#![allow(clippy::doc_overindented_list_items)]
 
 //! ## Entering capability mode
 //!

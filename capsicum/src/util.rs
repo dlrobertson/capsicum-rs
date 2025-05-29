@@ -6,7 +6,7 @@
 use std::{
     ffi::CString,
     fs::File,
-    io::{self, ErrorKind},
+    io,
     os::{
         fd::{AsFd, BorrowedFd},
         unix::{
@@ -69,7 +69,7 @@ impl Directory {
         mode: Option<mode_t>,
     ) -> io::Result<File> {
         let p = CString::new(path.as_ref().as_os_str().as_bytes())
-            .or(Err(io::Error::new(ErrorKind::Other, "not a valid C path")))?;
+            .or(Err(io::Error::other("not a valid C path")))?;
         unsafe {
             let fd = match mode {
                 Some(mode) => openat(self.file.as_raw_fd(), p.as_ptr(), flags, mode as c_uint),
