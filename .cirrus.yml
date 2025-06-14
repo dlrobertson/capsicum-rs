@@ -21,16 +21,13 @@ task:
         image: freebsd-14-1-release-amd64-ufs
     - name: FreeBSD 14 amd64 stable
       env:
-        VERSION: 1.77.0
+        VERSION: 1.81.0
       freebsd_instance:
         image: freebsd-14-1-release-amd64-ufs
     - name: FreeBSD 14 i686 nightly
       # Test i686 FreeBSD in 32-bit emulation on a 64-bit host.
       env:
         TARGET: i686-unknown-freebsd
-        # Can't use nightly on i686 due to
-        # https://github.com/rust-lang/rust/issues/130677
-        VERSION: 1.77.0
       freebsd_instance:
         image: freebsd-14-1-release-amd64-ufs
   << : *SETUP

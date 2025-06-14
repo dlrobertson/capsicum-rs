@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - ReleaseDate
+
+### Changed
+
+- Raised the MSRV to 1.81.0
+  ([#111](https://github.com/dlrobertson/capsicum-rs/pull/111))
+
 ## [0.4.4] - 2024-12-08
 
 ### Removed
