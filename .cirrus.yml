@@ -13,23 +13,23 @@ task:
     TARGET: x86_64-unknown-freebsd
     VERSION: nightly
   matrix:
-    - name: FreeBSD 13 amd64 nightly
-      freebsd_instance:
-        image: freebsd-13-4-release-amd64
     - name: FreeBSD 14 amd64 nightly
       freebsd_instance:
-        image: freebsd-14-1-release-amd64-ufs
-    - name: FreeBSD 14 amd64 stable
+        image: freebsd-14-3-release-amd64-ufs
+    - name: FreeBSD 15 amd64 nightly
+      freebsd_instance:
+        image: freebsd-15-0-release-amd64-ufs
+    - name: FreeBSD 15 amd64 stable
       env:
         VERSION: 1.81.0
       freebsd_instance:
-        image: freebsd-14-1-release-amd64-ufs
-    - name: FreeBSD 14 i686 nightly
+        image: freebsd-15-0-release-amd64-ufs
+    - name: FreeBSD 15 i686 nightly
       # Test i686 FreeBSD in 32-bit emulation on a 64-bit host.
       env:
         TARGET: i686-unknown-freebsd
       freebsd_instance:
-        image: freebsd-14-1-release-amd64-ufs
+        image: freebsd-15-0-release-amd64-ufs
   << : *SETUP
   extra_setup_script:
     - . $HOME/.cargo/env
@@ -56,7 +56,7 @@ lint_task:
     HOME: /tmp  # cargo cache needs it
     VERSION: nightly
   freebsd_instance:
-    image: freebsd-14-1-release-amd64-ufs
+    image: freebsd-15-0-release-amd64-ufs
   << : *SETUP
   extra_setup_script:
     - . $HOME/.cargo/env
