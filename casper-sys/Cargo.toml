@@ -13,5 +13,10 @@ FFI bindings for FreeBSD's libcasper
 keywords = ["sandbox", "FreeBSD", "capsicum"]
 links = "casper"
 
+[package.metadata.docs.rs]
+targets = [
+  "x86_64-unknown-freebsd",
+]
+
 [dependencies]
 libnv-sys = "0.2.1"
