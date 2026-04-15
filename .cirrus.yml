@@ -7,7 +7,16 @@ setup: &SETUP
     - fetch https://sh.rustup.rs -o rustup.sh
     - sh rustup.sh -y --profile=minimal --default-toolchain $VERSION
 
+build: &BUILD
+  cargo_cache:
+    folder: $HOME/.cargo/registry
+    fingerprint_script: cat Cargo.lock || echo ""
+  build_script:
+    - . $HOME/.cargo/env
+    - cargo build --target $TARGET
+
 test: &TEST
+  << : &BUILD
   test_script:
     - . $HOME/.cargo/env
     - cargo test --target $TARGET
@@ -23,7 +32,7 @@ task:
   env:
     HOME: /tmp  # cargo cache needs it
     TARGET: x86_64-unknown-freebsd
-    VERSION: 1.81.0
+    VERSION: stable
   matrix:
     - name: FreeBSD 14 amd64 stable
       freebsd_instance:
@@ -40,12 +49,18 @@ task:
   << : *SETUP
   extra_setup_script:
     - . $HOME/.cargo/env
-    - cp Cargo.lock.msrv Cargo.lock
     - if [ "$TARGET" = "i686-unknown-freebsd" ]; then rustup target add --toolchain $VERSION i686-unknown-freebsd; fi
   << : *TEST
-  cargo_cache:
-    folder: $HOME/.cargo/registry
-    fingerprint_script: cat Cargo.lock || echo ""
+  before_cache_script: rm -rf $HOME/.cargo/registry/index 
+
+msrv_task:
+  name: FreeBSD 15 amd64 MSRV
+  env:
+    HOME: /tmp  # cargo cache needs it
+    TARGET: x86_64-unknown-freebsd
+    VERSION: 1.81.0
+  << : *SETUP
+  << : *BUILD
   before_cache_script: rm -rf $HOME/.cargo/registry/index 
 
 # Stuff that only needs to be run with nightly Rust
@@ -62,8 +77,6 @@ lint_task:
     - . $HOME/.cargo/env
     - rustup component add --toolchain $VERSION clippy
     - rustup component add --toolchain $VERSION rustfmt
-  cargo_cache:
-    folder: $HOME/.cargo/registry
   << : *TEST
   clippy_script:
     - . $HOME/.cargo/env
