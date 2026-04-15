@@ -60,7 +60,7 @@ msrv_task:
     TARGET: x86_64-unknown-freebsd
     VERSION: 1.81.0
   << : *SETUP
-  << : *BUILD
+  #<< : *BUILD
   before_cache_script: rm -rf $HOME/.cargo/registry/index 
 
 # Stuff that only needs to be run with nightly Rust
