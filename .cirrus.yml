@@ -59,6 +59,8 @@ msrv_task:
     HOME: /tmp  # cargo cache needs it
     TARGET: x86_64-unknown-freebsd
     VERSION: 1.81.0
+  freebsd_instance:
+    image: freebsd-15-0-release-amd64-ufs
   << : *SETUP
   #<< : *BUILD
   before_cache_script: rm -rf $HOME/.cargo/registry/index 
