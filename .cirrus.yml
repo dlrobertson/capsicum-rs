@@ -62,7 +62,7 @@ msrv_task:
   freebsd_instance:
     image: freebsd-15-0-release-amd64-ufs
   << : *SETUP
-  #<< : *BUILD
+  << : *BUILD
   before_cache_script: rm -rf $HOME/.cargo/registry/index 
 
 # Stuff that only needs to be run with nightly Rust
