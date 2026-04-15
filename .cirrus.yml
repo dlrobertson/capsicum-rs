@@ -16,7 +16,7 @@ build: &BUILD
     - cargo build --target $TARGET
 
 test: &TEST
-  << : &BUILD
+  << : *BUILD
   test_script:
     - . $HOME/.cargo/env
     - cargo test --target $TARGET
