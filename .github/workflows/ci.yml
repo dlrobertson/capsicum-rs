@@ -16,15 +16,15 @@ jobs:
       matrix:
         include:
           - freebsd_version: "14.4"
-            rust_version: "1.81.0"
+            rust_version: "1.82.0"
             target: x86_64-unknown-freebsd
             arch: x86_64
           - freebsd_version: "15.0"
-            rust_version: "1.81.0"
+            rust_version: "1.82.0"
             target: x86_64-unknown-freebsd
             arch: x86_64
           - freebsd_version: "15.0"
-            rust_version: "1.81.0"
+            rust_version: "1.82.0"
             target: i686-unknown-freebsd
             arch: i686
           - freebsd_version: "15.0"
