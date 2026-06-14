@@ -45,7 +45,7 @@ jobs:
       - name: Install dependencies
         shell: freebsd {0}
         run: |
-          pkg install -y curl llvm
+          pkg install -y curl
           fetch https://sh.rustup.rs -o rustup.sh
           sh rustup.sh -y --profile=minimal --default-toolchain ${{ matrix.rust_version }}
       - name: Setup
