@@ -12,6 +12,10 @@ fn always_abort() {
 }
 #[cfg(not(nightly))]
 fn always_abort() {
+    // Use exit code 1 as a generic "unexpected panic" indicator.  The
+    // specific test conditions below use distinct exit codes (1–4) for
+    // intentional failures, but those are expressed as explicit _exit calls
+    // rather than panics, so this hook only fires on truly unexpected panics.
     std::panic::set_hook(Box::new(|_| unsafe {
         libc::_exit(1);
     }));
