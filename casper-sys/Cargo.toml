@@ -19,4 +19,4 @@ targets = [
 ]
 
 [dependencies]
-libnv-sys = "0.3.0"
+libnv-sys = "0.3.1"
