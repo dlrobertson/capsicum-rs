@@ -4,7 +4,7 @@
 
 #![cfg_attr(nightly, feature(panic_always_abort))]
 
-/// Switch the panic handler to SIGABRT, since stack unwinding can't be safely
+/// Switch the panic handler to abort, since stack unwinding can't be safely
 /// done after a fork.
 #[cfg(nightly)]
 fn always_abort() {
@@ -12,7 +12,9 @@ fn always_abort() {
 }
 #[cfg(not(nightly))]
 fn always_abort() {
-    // Nothing we can do.
+    std::panic::set_hook(Box::new(|_| unsafe {
+        libc::_exit(1);
+    }));
 }
 
 mod base {
@@ -94,16 +96,18 @@ mod base {
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
                 always_abort();
-                enter().expect("cap_enter failed!");
-                assert!(sandboxed(), "application is not properly sandboxed");
-
-                if fs::File::open(file.path()).is_ok() {
-                    panic!("application is not properly sandboxed!");
+                if enter().is_err() {
+                    unsafe { libc::_exit(1) };
                 }
-
-                let mut s = String::new();
-                if file.read_to_string(&mut s).is_err() {
-                    panic!("application is not properly sandboxed!");
+                if !sandboxed() {
+                    unsafe { libc::_exit(2) };
+                }
+                if fs::File::open(file.path()).is_ok() {
+                    unsafe { libc::_exit(3) };
+                }
+                let mut buf = [0u8; 64];
+                if file.read(&mut buf).is_err() {
+                    unsafe { libc::_exit(4) };
                 }
                 unsafe { libc::_exit(0) };
             }
@@ -171,8 +175,12 @@ mod util {
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
                 always_abort();
-                capsicum::enter().unwrap();
-                let _ = dir.open_file(fname, 0, None).unwrap();
+                if capsicum::enter().is_err() {
+                    unsafe { libc::_exit(1) };
+                }
+                if dir.open_file(fname, 0, None).is_err() {
+                    unsafe { libc::_exit(2) };
+                }
                 unsafe { libc::_exit(0) };
             }
             ForkResult::Parent { child } => {
@@ -194,14 +202,18 @@ mod util {
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
                 always_abort();
-                capsicum::enter().unwrap();
-                let e = dir.open_file(fname, 0, None).unwrap_err();
-                // The OS should return ENOTCAPABLE, but std::io::ErrorKind
-                // doesn't have a kind for that.
-                if e.raw_os_error() == Some(libc::ENOTCAPABLE) {
-                    unsafe { libc::_exit(0) }
-                } else {
-                    unsafe { libc::_exit(1) }
+                if capsicum::enter().is_err() {
+                    unsafe { libc::_exit(1) };
+                }
+                match dir.open_file(fname, 0, None) {
+                    Ok(_) => unsafe { libc::_exit(2) },
+                    Err(e) => {
+                        if e.raw_os_error() == Some(libc::ENOTCAPABLE) {
+                            unsafe { libc::_exit(0) }
+                        } else {
+                            unsafe { libc::_exit(3) }
+                        }
+                    }
                 }
             }
             ForkResult::Parent { child } => {
