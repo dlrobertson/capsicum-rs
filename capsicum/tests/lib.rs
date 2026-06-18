@@ -12,10 +12,6 @@ fn always_abort() {
 }
 #[cfg(not(nightly))]
 fn always_abort() {
-    // Use exit code 1 as a generic "unexpected panic" indicator.  The
-    // specific test conditions below use distinct exit codes (1–4) for
-    // intentional failures, but those are expressed as explicit _exit calls
-    // rather than panics, so this hook only fires on truly unexpected panics.
     std::panic::set_hook(Box::new(|_| unsafe {
         libc::_exit(1);
     }));
@@ -100,18 +96,16 @@ mod base {
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
                 always_abort();
-                if enter().is_err() {
-                    unsafe { libc::_exit(1) };
-                }
-                if !sandboxed() {
-                    unsafe { libc::_exit(2) };
-                }
+                enter().expect("cap_enter failed!");
+                assert!(sandboxed(), "application is not properly sandboxed");
+
                 if fs::File::open(file.path()).is_ok() {
-                    unsafe { libc::_exit(3) };
+                    panic!("application is not properly sandboxed!");
                 }
-                let mut buf = [0u8; 64];
-                if file.read(&mut buf).is_err() {
-                    unsafe { libc::_exit(4) };
+
+                let mut s = String::new();
+                if file.read_to_string(&mut s).is_err() {
+                    panic!("application is not properly sandboxed!");
                 }
                 unsafe { libc::_exit(0) };
             }
@@ -179,12 +173,8 @@ mod util {
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
                 always_abort();
-                if capsicum::enter().is_err() {
-                    unsafe { libc::_exit(1) };
-                }
-                if dir.open_file(fname, 0, None).is_err() {
-                    unsafe { libc::_exit(2) };
-                }
+                capsicum::enter().unwrap();
+                let _ = dir.open_file(fname, 0, None).unwrap();
                 unsafe { libc::_exit(0) };
             }
             ForkResult::Parent { child } => {
@@ -206,18 +196,14 @@ mod util {
         match unsafe { fork() }.unwrap() {
             ForkResult::Child => {
                 always_abort();
-                if capsicum::enter().is_err() {
-                    unsafe { libc::_exit(1) };
-                }
-                match dir.open_file(fname, 0, None) {
-                    Ok(_) => unsafe { libc::_exit(2) },
-                    Err(e) => {
-                        if e.raw_os_error() == Some(libc::ENOTCAPABLE) {
-                            unsafe { libc::_exit(0) }
-                        } else {
-                            unsafe { libc::_exit(3) }
-                        }
-                    }
+                capsicum::enter().unwrap();
+                let e = dir.open_file(fname, 0, None).unwrap_err();
+                // The OS should return ENOTCAPABLE, but std::io::ErrorKind
+                // doesn't have a kind for that.
+                if e.raw_os_error() == Some(libc::ENOTCAPABLE) {
+                    unsafe { libc::_exit(0) }
+                } else {
+                    unsafe { libc::_exit(1) }
                 }
             }
             ForkResult::Parent { child } => {
