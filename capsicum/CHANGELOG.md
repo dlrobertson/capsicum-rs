@@ -7,8 +7,17 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- Raised the MSRV to 1.81.0
+- The crate can now be build without llvm being installed.
+  ([#119](https://github.com/dlrobertson/capsicum-rs/pull/119))
+
+- Raised the MSRV to 1.82.0
   ([#111](https://github.com/dlrobertson/capsicum-rs/pull/111))
+  ([#119](https://github.com/dlrobertson/capsicum-rs/pull/119))
+
+### Removed
+
+- Removed support for FreeBSD 13.
+  ([#119](https://github.com/dlrobertson/capsicum-rs/pull/119))
 
 ## [0.4.4] - 2024-12-08
 

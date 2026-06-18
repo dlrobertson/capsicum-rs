@@ -5,7 +5,7 @@ version = "0.4.4"
 authors = ["Dan Robertson <dan@dlrobertson.com>"]
 license = "MPL-2.0"
 repository = "https://github.com/dlrobertson/capsicum-rs"
-rust-version = "1.81.0"
+rust-version = "1.82.0"
 description = """
 Simple intuitive Rust bindings for the FreeBSD capsicum framework
 """
@@ -34,8 +34,8 @@ path = "examples/getuid.rs"
 [dependencies]
 libc = { version = "0.2.156", features = [ "extra_traits" ] }
 casper-sys = { path = "../casper-sys", optional = true, version = "0.1.2" }
-libnv = { version = "0.4.2", default-features = false, features = [ "libnv" ], optional = true }
-libnv-sys = { version = "0.2.1", optional = true }
+libnv = { version = "0.5.1", default-features = false, features = [ "libnv" ], optional = true }
+libnv-sys = { version = "0.3.1", optional = true }
 ctor = "0.2.9"
 
 [build-dependencies]
@@ -44,5 +44,5 @@ version_check = "0.9.4"
 [dev-dependencies]
 cap-std = "3.0"
 nix = { version = ">=0.27.0,<0.30.0", default-features = false, features = [ "fs", "ioctl", "process", "socket" ] }
-libnv-sys = "0.2.1"
+libnv-sys = "0.3.0"
 tempfile = "3.6"
