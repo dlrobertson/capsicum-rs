@@ -1,6 +1,6 @@
 [package]
 name = "casper-sys"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["Alan Somers <asomers@gmail.com>"]
 license = "MPL-2.0"
