@@ -19,17 +19,17 @@ jobs:
             rust_version: "1.82.0"
             target: x86_64-unknown-freebsd
             arch: x86_64
-          - freebsd_version: "15.0"
+          - freebsd_version: "15.1"
             rust_version: "1.82.0"
             target: x86_64-unknown-freebsd
             arch: x86_64
-          - freebsd_version: "15.0"
+          - freebsd_version: "15.1"
             # Can't use Rust 1.82.0 on i686 due to a libc bug:
             # https://github.com/rust-lang/rust/issues/130677
             rust_version: "1.83.0"
             target: i686-unknown-freebsd
             arch: i686
-          - freebsd_version: "15.0"
+          - freebsd_version: "15.1"
             rust_version: "nightly"
             target: x86_64-unknown-freebsd
             arch: x86_64
