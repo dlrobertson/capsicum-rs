@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- The crate can now be build without llvm being installed.
+- The crate can now be built without llvm being installed.
   ([#119](https://github.com/dlrobertson/capsicum-rs/pull/119))
 
 - Raised the MSRV to 1.82.0
